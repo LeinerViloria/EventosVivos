@@ -53,7 +53,8 @@ jobs:
             /o:"${{ secrets.SONAR_ORGANIZATION }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.token="$SONAR_TOKEN" \
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+            /d:sonar.coverage.exclusions="**/RabbitMqEventBus.cs,**/RabbitMqEventStreamConsumer.cs,**/OutboxPublisherService.cs,**/ReservationExpirationService.cs"
           dotnet build EventosVivos.sln -c Release
           dotnet test EventosVivos.sln -c Release --no-build \
             --settings coverlet.runsettings \

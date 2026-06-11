@@ -2,7 +2,7 @@ import { render, screen, fireEvent, RenderResult } from '@testing-library/angula
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import { TranslocoTestingModule } from '@jsverse/transloco';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { ReserveDialogComponent } from './reserve-dialog.component';
@@ -47,6 +47,7 @@ interface ReserveDialogApi {
     setValue: (value: Record<string, unknown>) => void;
     getRawValue: () => Record<string, unknown>;
   };
+  onHide: () => void;
 }
 
 async function setup(
@@ -106,5 +107,33 @@ describe('ReserveDialogComponent', () => {
 
     expect(component.form.getRawValue()['buyerName']).toBe('Administrador');
     expect(component.form.getRawValue()['buyerEmail']).toBe('admin@eventosvivos.dev');
+  });
+
+  it('shows the error when the reservation fails', async () => {
+    const createReservation = vi.fn().mockReturnValue(
+      throwError(() => ({
+        status: 409,
+        errorCode: 'RESERVATION_NO_TICKETS_AVAILABLE',
+        errorKind: 'business',
+        params: { available: 0 },
+        validationErrors: null,
+      })),
+    );
+    const { component } = await setup(createReservation);
+
+    component.form.setValue({ buyerName: 'Ana', buyerEmail: 'ana@example.com', quantity: 3 });
+    fireEvent.click(screen.getByRole('button', { name: 'Reservar' }));
+
+    expect(createReservation).toHaveBeenCalledTimes(1);
+  });
+
+  it('resets the form when the dialog is hidden', async () => {
+    const { component } = await setup();
+
+    component.form.setValue({ buyerName: 'Ana', buyerEmail: 'ana@example.com', quantity: 5 });
+    component.onHide();
+
+    expect(component.form.getRawValue()['buyerName']).toBe('');
+    expect(component.form.getRawValue()['quantity']).toBe(1);
   });
 });

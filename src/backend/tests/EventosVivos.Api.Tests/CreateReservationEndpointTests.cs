@@ -71,6 +71,17 @@ public sealed class CreateReservationEndpointTests(EventsApiFactory factory) : I
     }
 
     [Fact]
+    public async Task Returns_404_when_the_event_does_not_exist()
+    {
+        var admin = await factory.CreateAdminClientAsync();
+
+        var response = await admin.PostAsJsonAsync(
+            "/api/v1/reservations", AReservation(Guid.NewGuid(), 1));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Does_not_oversell_under_concurrency()
     {
         var admin = await factory.CreateAdminClientAsync();

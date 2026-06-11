@@ -12,6 +12,7 @@ import { FluidModule } from 'primeng/fluid';
 import { MessageService } from 'primeng/api';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { EventsStore } from '@features/events/events-store';
+import { showAppError } from '@core/errors/show-app-error';
 import { FieldComponent } from '@shared/components/field/field.component';
 import { EventListItem } from '@shared/models/event';
 import { AppError } from '@shared/models/app-error';
@@ -105,19 +106,7 @@ export class ReserveDialogComponent {
       },
       error: (error: AppError) => {
         this.submitting.set(false);
-        const codes = error.validationErrors?.length
-          ? error.validationErrors.map((fieldError) => ({
-              code: fieldError.errorCode,
-              params: fieldError.params,
-            }))
-          : [{ code: error.errorCode, params: error.params }];
-
-        for (const { code, params } of codes) {
-          this.messages.add({
-            severity: 'error',
-            detail: this.transloco.translate(`errors.${code}`, params ?? undefined),
-          });
-        }
+        showAppError(error, this.messages, this.transloco);
       },
     });
   }

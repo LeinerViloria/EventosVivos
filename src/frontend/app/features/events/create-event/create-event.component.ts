@@ -15,6 +15,7 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { EventsStore } from '@features/events/events-store';
+import { showAppError } from '@core/errors/show-app-error';
 import { EventType } from '@shared/enums/event-type';
 import { AppError } from '@shared/models/app-error';
 import { CreateEventRequest } from '@shared/models/event';
@@ -114,23 +115,7 @@ export class CreateEventComponent {
       },
       error: (error: AppError) => {
         this.submitting.set(false);
-
-        // A validation failure (422) carries one entry per field in `validationErrors`;
-        // any other failure carries a single top-level `errorCode`. Either way the backend
-        // only sends codes, and i18n turns each code (with its params) into the shown text.
-        const codes = error.validationErrors?.length
-          ? error.validationErrors.map((fieldError) => ({
-              code: fieldError.errorCode,
-              params: fieldError.params,
-            }))
-          : [{ code: error.errorCode, params: error.params }];
-
-        for (const { code, params } of codes) {
-          this.messages.add({
-            severity: 'error',
-            detail: this.transloco.translate(`errors.${code}`, params ?? undefined),
-          });
-        }
+        showAppError(error, this.messages, this.transloco);
       },
     });
   }
