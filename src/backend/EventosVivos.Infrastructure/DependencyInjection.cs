@@ -47,12 +47,14 @@ public static class DependencyInjection
         services.AddSingleton<ISessionStore, RedisSessionStore>();
         services.AddSingleton<IPermissionStore, RedisPermissionStore>();
 
-        // Messaging: expiration sweep + Outbox publisher to RabbitMQ.
+        // Messaging: expiration sweep + Outbox publisher to RabbitMQ + real-time fan-out to SSE.
         services.AddSingleton<IEventBus, RabbitMqEventBus>();
+        services.AddSingleton<EventStreamBroadcaster>();
         services.AddScoped<ReservationExpirationProcessor>();
         services.AddScoped<OutboxProcessor>();
         services.AddHostedService<ReservationExpirationService>();
         services.AddHostedService<OutboxPublisherService>();
+        services.AddHostedService<RabbitMqEventStreamConsumer>();
 
         return services;
     }
