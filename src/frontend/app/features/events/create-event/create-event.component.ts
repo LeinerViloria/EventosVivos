@@ -106,8 +106,7 @@ export class CreateEventComponent {
     this.store.createEvent(request).subscribe({
       next: () => {
         this.submitting.set(false);
-        this.submitted.set(false);
-        this.form.reset();
+        this.resetForm();
         this.messages.add({
           severity: 'success',
           detail: this.transloco.translate('labels.event.created'),
@@ -134,6 +133,28 @@ export class CreateEventComponent {
         }
       },
     });
+  }
+
+  /**
+   * Clears the form after a successful creation so the user can register another event.
+   * `setValue` (rather than `reset`) is used because it reliably propagates the empty values
+   * to the bound PrimeNG controls through the compat bridge; marking it pristine/untouched
+   * then hides the validation state.
+   */
+  private resetForm(): void {
+    this.submitted.set(false);
+    this.form.setValue({
+      title: '',
+      description: '',
+      venueId: null,
+      maxCapacity: null,
+      startsAt: null,
+      endsAt: null,
+      price: null,
+      eventType: null,
+    });
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
   }
 
   /** Converts a local Date to an ISO 8601 string keeping the client's offset. */

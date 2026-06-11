@@ -75,6 +75,7 @@ async function setup() {
   const component = view.fixture.componentInstance as unknown as {
     form: {
       setValue: (value: Record<string, unknown>) => void;
+      getRawValue: () => Record<string, unknown>;
       invalid: boolean;
     };
   };
@@ -129,5 +130,8 @@ describe('CreateEventComponent', () => {
     });
     expect(request.startsAt).toMatch(/^2026-07-01T20:00:00[+-]\d{2}:\d{2}$/);
     expect(request.endsAt).toMatch(/^2026-07-01T23:00:00[+-]\d{2}:\d{2}$/);
+
+    // After a successful creation the form is cleared for the next entry.
+    expect(component.form.getRawValue()['title']).toBe('');
   });
 });
