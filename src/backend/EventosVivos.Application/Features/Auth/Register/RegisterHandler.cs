@@ -1,27 +1,31 @@
 using EventosVivos.Application.Abstractions;
+using EventosVivos.Application.Features.Auth.Login;
 using EventosVivos.Domain.Common;
 using EventosVivos.Domain.Users;
 using Mediator;
 
-namespace EventosVivos.Application.Features.Auth.Login;
+namespace EventosVivos.Application.Features.Auth.Register;
 
-public sealed class LoginHandler(
+public sealed class RegisterHandler(
     IUserRepository users,
     IPasswordHasher passwordHasher,
     ISessionStore sessions,
     IPermissionStore permissions,
     ITokenService tokens,
-    IClock clock) : IRequestHandler<LoginCommand, Result<LoginResponse>>
+    IClock clock) : IRequestHandler<RegisterCommand, Result<LoginResponse>>
 {
     public async ValueTask<Result<LoginResponse>> Handle(
-        LoginCommand command,
+        RegisterCommand command,
         CancellationToken cancellationToken)
     {
-        var user = await users.GetByEmailAsync(command.Email, cancellationToken);
-        if (user is null || !passwordHasher.Verify(command.Password, user.PasswordHash))
+        if (await users.ExistsAsync(command.Email, cancellationToken))
         {
-            return Result.Failure<LoginResponse>(AuthErrors.InvalidCredentials);
+            return Result.Failure<LoginResponse>(AuthErrors.EmailAlreadyRegistered);
         }
+
+        var user = User.Create(
+            command.Email, passwordHasher.Hash(command.Password), command.Name.Trim(), UserRole.User);
+        users.Add(user);
 
         var response = await AuthTokenIssuer.IssueAsync(
             user, sessions, permissions, tokens, clock, cancellationToken);

@@ -38,6 +38,16 @@ export class AuthStore {
     );
   }
 
+  /** Public self-registration; the backend always assigns the regular user role. */
+  register(name: string, email: string, password: string): Observable<void> {
+    return this.http
+      .post<LoginResponse>(`${this.apiBase}/auth/register`, { name, email, password })
+      .pipe(
+        tap((response) => this.persist(response)),
+        map(() => undefined),
+      );
+  }
+
   logout(): void {
     if (this.identityToken()) {
       // Best-effort revocation in Redis; the local session is cleared regardless of the outcome.

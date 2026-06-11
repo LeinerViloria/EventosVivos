@@ -1,8 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { SignalFormControl } from '@angular/forms/signals/compat';
-import { email, required } from '@angular/forms/signals';
+import { email, minLength, required } from '@angular/forms/signals';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
@@ -11,11 +11,12 @@ import { ToastModule } from 'primeng/toast';
 import { FluidModule } from 'primeng/fluid';
 import { MessageService } from 'primeng/api';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { RouterLink } from '@angular/router';
 import { AuthStore } from '@core/auth/auth-store';
 import { AppError } from '@shared/models/app-error';
 
 @Component({
-  selector: 'app-login',
+  selector: 'app-register',
   imports: [
     ReactiveFormsModule,
     RouterLink,
@@ -28,9 +29,9 @@ import { AppError } from '@shared/models/app-error';
     TranslocoModule,
   ],
   providers: [MessageService],
-  templateUrl: './login.component.html',
+  templateUrl: './register.component.html',
 })
-export class LoginComponent {
+export class RegisterComponent {
   private readonly auth = inject(AuthStore);
   private readonly router = inject(Router);
   private readonly messages = inject(MessageService);
@@ -40,11 +41,15 @@ export class LoginComponent {
   protected readonly submitting = signal(false);
 
   protected readonly form = new FormGroup({
+    name: new SignalFormControl<string>('', (path) => required(path)),
     email: new SignalFormControl<string>('', (path) => {
       required(path);
       email(path);
     }),
-    password: new SignalFormControl<string>('', (path) => required(path)),
+    password: new SignalFormControl<string>('', (path) => {
+      required(path);
+      minLength(path, 8);
+    }),
   });
 
   protected showError(field: string): boolean {
@@ -60,9 +65,9 @@ export class LoginComponent {
       return;
     }
 
-    const { email: emailValue, password } = this.form.getRawValue();
+    const { name, email: emailValue, password } = this.form.getRawValue();
     this.submitting.set(true);
-    this.auth.login(emailValue, password).subscribe({
+    this.auth.register(name, emailValue, password).subscribe({
       next: () => {
         this.submitting.set(false);
         this.router.navigate(['/']);

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, RenderResult } from '@testing-library/angular';
-import { Router } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import { TranslocoTestingModule } from '@jsverse/transloco';
@@ -38,7 +38,7 @@ async function setup(login = vi.fn().mockReturnValue(of(undefined))) {
     ],
     providers: [
       { provide: AuthStore, useValue: { login } },
-      { provide: Router, useValue: { navigate: () => undefined } },
+      provideRouter([{ path: '**', children: [] }]),
       providePrimeNG({ theme: { preset: Aura } }),
     ],
   });
