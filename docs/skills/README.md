@@ -17,6 +17,7 @@ Las decisiones estructurales del sistema se documentan aparte, en [`ARQUITECTURA
 | [database-modeling](./database-modeling.md) | Configuración con Fluent API e índices sin redundancia. |
 | [error-handling](./error-handling.md) | Contrato de códigos de error compartido entre backend y frontend. |
 | [form-validation](./form-validation.md) | Validación con Signal Forms; estructura en el cliente, reglas de negocio en el servidor. |
+| [ui-components](./ui-components.md) | Tailwind y PrimeNG; componer con componentes reutilizables y presentar errores. |
 | [i18n-and-enums](./i18n-and-enums.md) | Internacionalización en español de Colombia y enumeraciones numéricas. |
 | [datetime-utc](./datetime-utc.md) | Manejo de fechas en UTC y zona horaria del cliente. |
 | [security](./security.md) | Autenticación de dos tokens y manejo seguro de la información. |

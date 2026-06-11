@@ -20,7 +20,11 @@ Tal como lo señala el enunciado, los casos borde y las validaciones se prueban 
 
 ## Estrategia de pruebas en el frontend
 
-En el frontend se escriben pruebas unitarias para los servicios encargados del estado y de las llamadas a la API, para los pipes de internacionalización y de fechas, y para los guards e interceptores, todos verificados en aislamiento. Además se escriben pruebas de componente que validan el renderizado y el comportamiento de la interfaz con sus dependencias simuladas. El detalle del runner de pruebas y de la estructura concreta se definirá junto con la arquitectura del frontend.
+El ejecutor de pruebas es Vitest, el que Angular 22 adopta por defecto. Para las pruebas de componente se utiliza además Angular Testing Library sobre el `TestBed`, que orienta las pruebas hacia el comportamiento observable por el usuario. Estas piezas se apilan y no compiten: Vitest ejecuta todas las pruebas, el `TestBed` configura los componentes y Angular Testing Library ayuda a renderizarlos y consultarlos.
+
+El grueso de las pruebas se concentra en los stores basados en servicios, donde vive la lógica: el manejo del estado, la orquestación de los comandos, los signals derivados y el manejo de errores. Junto a ellos se prueban las unidades puras, como los validadores de Signal Forms, el pipe de traducción de enumeraciones y los interceptores de autorización, zona horaria y normalización de errores. Las pruebas de componente verifican el comportamiento de la interfaz, y el servicio de Server-Sent Events se prueba simulando el `EventSource`.
+
+Para simular las dependencias se usa el backend de pruebas de `HttpClient` en las llamadas a la API, un doble del `EventSource` en el servicio de eventos y un stub de traducciones para Transloco. El modo zoneless simplifica las pruebas, porque basta con leer el valor de los signals después de ejecutar una acción. La cobertura la mide Vitest y se integra en el quality gate de SonarQube.
 
 ## Reglas generales
 

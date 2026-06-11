@@ -184,6 +184,48 @@ La conexión se abre una vez que el usuario ha iniciado sesión y se cierra al c
 
 ---
 
-## 8. Temas pendientes de definir
+## 8. Estrategia de pruebas
 
-Las siguientes secciones se completarán a medida que se discutan: la estrategia de pruebas con Vitest y la presentación de errores en la interfaz.
+Las pruebas del frontend se ejecutan con Vitest, el ejecutor que Angular 22 adopta por defecto. Para las pruebas de componente se utiliza además Angular Testing Library, una capa de utilidades que se apoya en el `TestBed` de Angular y que orienta las pruebas hacia el comportamiento observable por el usuario. Conviene tener presente que estas piezas se apilan y no compiten: Vitest ejecuta todas las pruebas, el `TestBed` configura los componentes y Angular Testing Library ayuda a renderizarlos y consultarlos. La versión compatible con Angular 22 se fijará al implementar.
+
+### Dónde se concentra el esfuerzo
+
+La lógica del frontend vive sobre todo en los stores basados en servicios, de modo que ahí se concentra el grueso de las pruebas: el manejo del estado, la orquestación de los comandos, los signals derivados y el manejo de errores, simulando la capa HTTP.
+
+Junto a ellas se prueban las unidades puras, rápidas y aisladas: los validadores personalizados de Signal Forms, el pipe de traducción de enumeraciones, los interceptores de autorización, de zona horaria y de normalización de errores, y la lógica de mapeo de errores.
+
+Las pruebas de componente verifican el comportamiento de la interfaz con sus dependencias simuladas, por ejemplo que un formulario bloquee el envío cuando es inválido, que los errores aparezcan al tocar un campo o que una lista muestre lo que entrega su store. Se enfocan en lo que el usuario ve y hace, no en los detalles internos.
+
+Por último, el servicio de Server-Sent Events se prueba simulando el `EventSource`, para verificar que un evento entrante actualiza el signal correspondiente y que la reconexión distingue un corte de red de un error de autenticación.
+
+### Simulación de dependencias
+
+Para las llamadas HTTP, tanto de los recursos de lectura como de los comandos, se usa el backend de pruebas de `HttpClient`, que permite controlar las respuestas y verificar las peticiones sin tocar la red. El `EventSource` se reemplaza por un doble en las pruebas. Transloco se configura con un stub de traducciones, de modo que las pruebas no dependan del archivo real de idioma.
+
+El modo zoneless facilita las pruebas: como los signals son los que disparan el redibujado, las pruebas leen el valor de los signals después de ejecutar una acción, sin necesidad de los mecanismos de zona que antes complicaban las pruebas asíncronas. Lo asíncrono, como un `httpResource` o un comando, se resuelve esperando en la prueba.
+
+### Cobertura
+
+Vitest mide la cobertura, que se integra en el análisis de SonarQube y queda sujeta al quality gate definido en la integración continua. Así, la cobertura y la calidad de las pruebas del frontend se verifican de forma automática, igual que en el backend.
+
+---
+
+## 9. Interfaz de usuario
+
+La base de estilos es Tailwind, y los componentes provienen de PrimeNG, la librería de componentes de Angular más completa, con más de ochenta componentes de licencia MIT ya funcionales. PrimeNG cubre de entrada lo que el proyecto necesita: tablas con paginación, que encajan con la paginación resuelta en el servidor, formularios, diálogos y componentes de mensajes y notificaciones para los errores. La integración con Tailwind se realiza con el plugin oficial de PrimeNG, que funciona en modo con estilos y sin estilos, y la tematización reciente de PrimeNG se basa en variables y tokens, lo que evita los conflictos de estilo que solían darse entre Tailwind y otras librerías. La versión compatible con Angular 22 se fija al implementar.
+
+Se consideró SpartanNG, una opción pensada para Tailwind desde su base que entrega control total de los componentes al copiarlos dentro del proyecto. Se descartó para este alcance porque implica más trabajo de ensamblaje y no encaja tan bien con el objetivo de partir de una librería que ya provea componentes funcionales listos.
+
+El principio de construcción de la interfaz es componer con componentes y no escribir HTML crudo. La interfaz se arma principalmente con los componentes de PrimeNG. Cuando un caso necesita personalización o se repite en varias vistas, se extrae a un componente reutilizable propio, ubicado en la carpeta `shared`, que normalmente envuelve uno o varios componentes de PrimeNG aplicando las convenciones del proyecto. Así, la lógica de presentación común queda en un solo lugar y las vistas se construyen ensamblando componentes.
+
+---
+
+## 10. Presentación de errores
+
+La presentación de errores aprovecha el error tipado `{ errorCode, errorKind, params }` y el campo `errorKind` para decidir cómo mostrar cada error. En todos los casos, el texto se obtiene traduciendo el código con Transloco e interpolando los parámetros, de modo que se mantiene el único camino de traducción definido. La librería ya ofrece los componentes necesarios, por lo que no se incorpora ninguna dependencia adicional para esto.
+
+Los errores de validación, los de Signal Forms, se muestran en línea junto al campo correspondiente, con el componente de mensaje de PrimeNG. Es el lugar natural, porque el usuario necesita ver qué campo corregir mientras llena el formulario.
+
+Los errores de negocio, los que devuelve el servidor cuando una regla RN01 a RN07 no se cumple, se muestran como un toast, una notificación temporal en una esquina, con el componente de toast de PrimeNG. Son el resultado de una acción, como confirmar un pago o reservar, y un toast los comunica sin interrumpir el flujo.
+
+Los errores generales, los inesperados del sistema, se muestran también como un toast, pero con un mensaje genérico, sin filtrar detalles internos, en coherencia con la decisión de seguridad del backend.
