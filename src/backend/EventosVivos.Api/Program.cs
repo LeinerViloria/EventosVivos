@@ -2,6 +2,7 @@ using EventosVivos.Api.Endpoints;
 using EventosVivos.Api.Errors;
 using EventosVivos.Application;
 using EventosVivos.Infrastructure;
+using EventosVivos.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,8 @@ builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 var app = builder.Build();
+
+await app.Services.ApplyMigrationsAsync();
 
 app.UseExceptionHandler();
 
