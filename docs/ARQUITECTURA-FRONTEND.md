@@ -123,6 +123,47 @@ Signal Forms admite además la validación por esquema con librerías como Zod o
 
 ---
 
-## 6. Temas pendientes de definir
+## 6. Internacionalización y enumeraciones
 
-Las siguientes secciones se completarán a medida que se discutan: el detalle de la internacionalización y el manejo de enumeraciones numéricas en el frontend, el servicio de Server-Sent Events y su autenticación, la estrategia de pruebas con Vitest y la presentación de errores en la interfaz.
+### Internacionalización en tiempo de ejecución con Transloco
+
+La internacionalización se resuelve en tiempo de ejecución con Transloco, y no con el enfoque de compilación de `@angular/localize`. La razón es concreta: el frontend no solo traduce textos fijos de las plantillas, sino claves dinámicas que se conocen en tiempo de ejecución, como los códigos de error que llegan en las respuestas del backend y los valores numéricos de los enums. Una librería de tiempo de ejecución traduce esas claves de forma natural y con interpolación de parámetros, mientras que el enfoque de compilación, pensado para textos estáticos marcados en la plantilla, se vuelve incómodo para traducir una clave que solo se conoce al recibir la respuesta. La versión de Transloco se fijará a la compatible con Angular 22 al momento de implementar.
+
+### Estructura del archivo de traducciones
+
+Las traducciones residen en un único archivo `es-CO.json`, organizado en tres secciones que separan las clases de texto que maneja la aplicación.
+
+```json
+{
+  "labels": { "events.title": "Eventos", "reservations.confirm": "Confirmar pago" },
+  "enums": {
+    "eventStatus": { "1": "Activo", "2": "Cancelado", "3": "Completado" },
+    "eventType":   { "1": "Conferencia", "2": "Taller", "3": "Concierto" },
+    "reservationStatus": { "1": "Pendiente de pago", "2": "Confirmada", "3": "Cancelada", "4": "Perdida" }
+  },
+  "errors": {
+    "RESERVATION_ALREADY_CONFIRMED": "La reserva ya está confirmada",
+    "MAX_TICKETS_PER_TRANSACTION_EXCEEDED": "Solo puedes reservar máximo {{max}} entradas"
+  }
+}
+```
+
+La sección de etiquetas contiene los textos de la interfaz. La sección de enums se organiza por tipo de enum y, dentro de cada uno, por el valor numérico, que es exactamente lo que viaja en el contrato. La sección de errores usa el código de error como clave, con marcadores para interpolar los parámetros.
+
+### Traducción de enumeraciones mediante un pipe puro
+
+Para traducir una enumeración se usa un pipe puro que recibe el valor numérico y el tipo de enum, y devuelve la etiqueta. En la plantilla se utiliza de la forma `{{ event.status | enumLabel:'eventStatus' }}`, y el pipe busca en la sección de enums la entrada correspondiente al número recibido. Al ser un pipe puro, no recalcula salvo que cambie el valor, lo que resulta eficiente. Esto cierra el círculo con la capa de datos: el número se conserva intacto hasta la presentación, y solo aquí se convierte en texto.
+
+### Traducción de los códigos de error
+
+Los códigos de error se traducen con el mismo archivo, usando la sección de errores y la interpolación de parámetros. Como los errores ya se normalizan a la forma `{ errorCode, params }`, tanto los que devuelve el servidor como los de validación de Signal Forms, la presentación toma el código, busca su clave en la sección de errores e interpola los parámetros. Es un único camino de traducción para ambos orígenes de error.
+
+### Formato de fechas, números y moneda
+
+Se registra el locale `es-CO` en la aplicación, de modo que los pipes de fecha, número y moneda usen el formato colombiano. Esto se conecta con el manejo de fechas: el backend entrega las fechas en tiempo universal y la presentación las muestra en la hora local con el formato de `es-CO`. El precio del evento se formatea también según ese locale.
+
+---
+
+## 7. Temas pendientes de definir
+
+Las siguientes secciones se completarán a medida que se discutan: el servicio de Server-Sent Events y su autenticación, la estrategia de pruebas con Vitest y la presentación de errores en la interfaz.
