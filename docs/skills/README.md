@@ -13,6 +13,8 @@ Las decisiones estructurales del sistema se documentan aparte, en [`ARQUITECTURA
 | [development-workflow](./development-workflow.md) | Trabajo por ramas, avance secuencial e integración mediante pull request. |
 | [code-conventions](./code-conventions.md) | Idioma del código, formato automático y convenciones de nombres. |
 | [tdd](./tdd.md) | Desarrollo guiado por pruebas y estrategia de testing por capa. |
+| [data-access](./data-access.md) | La base de datos resuelve los cálculos y búsquedas; LINQ sin SQL puro. |
+| [database-modeling](./database-modeling.md) | Configuración con Fluent API e índices sin redundancia. |
 | [error-handling](./error-handling.md) | Contrato de códigos de error compartido entre backend y frontend. |
 | [i18n-and-enums](./i18n-and-enums.md) | Internacionalización en español de Colombia y enumeraciones numéricas. |
 | [datetime-utc](./datetime-utc.md) | Manejo de fechas en UTC y zona horaria del cliente. |
