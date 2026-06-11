@@ -11,4 +11,8 @@ public static class EventErrors
     public static readonly Error EndNotAfterStart = new("EVENT_END_NOT_AFTER_START");
 
     public static readonly Error WeekendNightStart = new("EVENT_WEEKEND_NIGHT_START");
+
+    public static readonly Error VenueNotFound = new("VENUE_NOT_FOUND");
+
+    public static readonly Error VenueScheduleOverlap = new("VENUE_SCHEDULE_OVERLAP");
 }
