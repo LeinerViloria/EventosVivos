@@ -164,6 +164,26 @@ Se registra el locale `es-CO` en la aplicación, de modo que los pipes de fecha,
 
 ---
 
-## 7. Temas pendientes de definir
+## 7. Servicio de Server-Sent Events
 
-Las siguientes secciones se completarán a medida que se discutan: el servicio de Server-Sent Events y su autenticación, la estrategia de pruebas con Vitest y la presentación de errores en la interfaz.
+En la carpeta `core` vive un servicio de Server-Sent Events que abre la conexión con el endpoint de stream del backend mediante el `EventSource` nativo del navegador. El servicio no expone eventos crudos: los interpreta y los publica como signals tipados. Cada mensaje del stream tiene un tipo y un cuerpo en formato JSON; el servicio identifica el tipo, por ejemplo una liberación de entradas, y actualiza el signal correspondiente con los datos recibidos, que respetan el mismo contrato numérico del resto del sistema.
+
+La integración con el resto de la aplicación es la prevista en la capa de datos. Los stores de las features observan esos signals y reaccionan: cuando llega una liberación de entradas, el store recarga el recurso de lectura afectado para que la vista muestre la nueva disponibilidad. El modo zoneless juega a favor, porque al ser los signals los que disparan el redibujado, actualizar uno desde la devolución de llamada del `EventSource` refresca la interfaz sin mecanismos adicionales.
+
+### Autenticación del stream
+
+Como el `EventSource` no permite enviar la cabecera de autorización, el token de identidad viaja por la cadena de consulta de la URL del stream. Se descartó el uso de una cookie httpOnly por considerarse sobreingeniería para el alcance de un producto mínimo viable, ya que implicaría configuración adicional de cookies y de CORS.
+
+Esta decisión es aceptable porque el token aporta dos filtros de seguridad. El primero es su tiempo de vida corto, que limita la ventana en la que un token expuesto sería útil. El segundo es su firma, que impide que un token manipulado sea aceptado. A esto se suma que es un token solo de identidad, de tamaño reducido, y que la sesión es revocable contra Redis. El costo conocido es que el token queda visible en la URL y puede registrarse en logs; se asume de forma consciente para el alcance actual, dejando la cookie httpOnly como evolución de seguridad si el proyecto creciera.
+
+### Reconexión y ciclo de vida
+
+El `EventSource` reintenta la conexión automáticamente cuando se cae, comportamiento que se aprovecha para los cortes de red normales. Sin embargo, ante un error de autenticación, como un token expirado, reintentaría en vano; por eso el servicio maneja ese caso explícitamente, cerrando la conexión y volviéndola a abrir una vez renovado el token.
+
+La conexión se abre una vez que el usuario ha iniciado sesión y se cierra al cerrar sesión. Se mantiene una única conexión que transporta los eventos relevantes y que el servicio distribuye por tipo, en lugar de abrir varias, lo que es más simple y respeta los límites de conexiones del navegador.
+
+---
+
+## 8. Temas pendientes de definir
+
+Las siguientes secciones se completarán a medida que se discutan: la estrategia de pruebas con Vitest y la presentación de errores en la interfaz.

@@ -223,7 +223,7 @@ GET /api/v1/events/stream (SSE) ──keep-alive──> Angular EventSource → 
 > **No se usa SignalR/WebSocket** — se eligió SSE por simplicidad y por encajar con "escuchar un endpoint".
 
 **Cuidados:**
-- `EventSource` no permite header `Authorization` → el token de identidad viaja por **query string** o **cookie**.
+- `EventSource` no permite header `Authorization` → el token de identidad viaja por **query string** (se descartó la cookie por sobreingeniería para el MVP). Los filtros de seguridad son el TTL corto y la firma del token, sumados a que es solo de identidad y a que la sesión es revocable contra Redis.
 - Detrás de Nginx: `proxy_buffering off` + timeouts largos.
 
 ---
