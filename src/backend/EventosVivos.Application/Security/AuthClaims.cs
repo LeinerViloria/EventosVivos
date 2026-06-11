@@ -9,4 +9,7 @@ public static class AuthClaims
     public const string SessionId = "sid";
     public const string Permission = "perm";
     public const string Name = "name";
+
+    /// <summary>Short role claim used in the frontend-only permissions token.</summary>
+    public const string Role = "role";
 }

@@ -26,7 +26,7 @@ internal sealed class JwtTokenService(JwtOptions options, IClock clock) : IToken
 
     public string CreatePermissionsToken(UserRole role, string name, IReadOnlyList<string> permissions)
     {
-        List<Claim> claims = [new(ClaimTypes.Role, role.ToString()), new(AuthClaims.Name, name)];
+        List<Claim> claims = [new(AuthClaims.Role, role.ToString()), new(AuthClaims.Name, name)];
         claims.AddRange(permissions.Select(permission => new Claim(AuthClaims.Permission, permission)));
 
         return Write(claims, options.PermissionsTokenMinutes);

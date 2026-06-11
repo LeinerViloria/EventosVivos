@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 
 import { HomeComponent } from './home.component';
+import { AuthStore } from '@core/auth/auth-store';
 
 const esCO = {
   labels: {
@@ -28,7 +29,11 @@ async function setup() {
         preloadLangs: true,
       }),
     ],
-    providers: [provideRouter([])],
+    providers: [
+      provideRouter([]),
+      // An admin sees the (gated) create-event dashlet.
+      { provide: AuthStore, useValue: { hasPermission: () => true } },
+    ],
   });
 }
 
