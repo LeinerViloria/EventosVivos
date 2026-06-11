@@ -43,7 +43,8 @@ public class RegisterHandlerTests
         _permissions.GetPermissionsAsync(UserRole.User, Arg.Any<CancellationToken>())
             .Returns(new[] { "events.read" });
         _tokens.CreateIdentityToken(Arg.Any<Guid>(), UserRole.User, Arg.Any<Guid>()).Returns("identity-token");
-        _tokens.CreatePermissionsToken(UserRole.User, "Nueva Persona", Arg.Any<IReadOnlyList<string>>())
+        _tokens.CreatePermissionsToken(
+                UserRole.User, "Nueva Persona", "new@example.com", Arg.Any<IReadOnlyList<string>>())
             .Returns("permissions-token");
 
         var result = await _handler.Handle(

@@ -1,7 +1,8 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { SignalFormControl } from '@angular/forms/signals/compat';
 import { email, required } from '@angular/forms/signals';
+import { AuthStore } from '@core/auth/auth-store';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -35,6 +36,7 @@ export class ReserveDialogComponent {
   private readonly store = inject(EventsStore);
   private readonly messages = inject(MessageService);
   private readonly transloco = inject(TranslocoService);
+  private readonly auth = inject(AuthStore);
 
   readonly event = input<EventListItem | null>(null);
   readonly closed = output<void>();
@@ -51,6 +53,21 @@ export class ReserveDialogComponent {
     }),
     quantity: new SignalFormControl<number>(1, (path) => required(path)),
   });
+
+  constructor() {
+    // When the dialog opens, default the buyer to the signed-in user (still editable, so the
+    // user can reserve for someone else).
+    effect(() => {
+      if (this.event() === null) {
+        return;
+      }
+
+      const user = this.auth.user();
+      if (user) {
+        this.form.patchValue({ buyerName: user.name, buyerEmail: user.email });
+      }
+    });
+  }
 
   protected showError(field: string): boolean {
     const control = this.form.get(field);

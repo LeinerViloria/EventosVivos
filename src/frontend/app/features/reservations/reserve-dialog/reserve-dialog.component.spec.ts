@@ -7,6 +7,8 @@ import { vi } from 'vitest';
 
 import { ReserveDialogComponent } from './reserve-dialog.component';
 import { EventsStore } from '@features/events/events-store';
+import { AuthStore } from '@core/auth/auth-store';
+import { AuthUser } from '@shared/models/auth';
 import { EventListItem } from '@shared/models/event';
 
 const esCO = {
@@ -41,11 +43,15 @@ const anEvent: EventListItem = {
 };
 
 interface ReserveDialogApi {
-  form: { setValue: (value: Record<string, unknown>) => void };
+  form: {
+    setValue: (value: Record<string, unknown>) => void;
+    getRawValue: () => Record<string, unknown>;
+  };
 }
 
 async function setup(
   createReservation = vi.fn().mockReturnValue(of({ id: 'r1', expiresAtUtc: 'x' })),
+  user: AuthUser | null = null,
 ) {
   const view: RenderResult<ReserveDialogComponent> = await render(ReserveDialogComponent, {
     imports: [
@@ -57,6 +63,7 @@ async function setup(
     ],
     providers: [
       { provide: EventsStore, useValue: { createReservation } },
+      { provide: AuthStore, useValue: { user: () => user } },
       providePrimeNG({ theme: { preset: Aura } }),
     ],
     inputs: { event: anEvent },
@@ -85,5 +92,19 @@ describe('ReserveDialogComponent', () => {
       buyerEmail: 'ana@example.com',
       quantity: 3,
     });
+  });
+
+  it('prefills the buyer with the signed-in user', async () => {
+    const user: AuthUser = {
+      name: 'Administrador',
+      email: 'admin@eventosvivos.dev',
+      role: 'Admin',
+      permissions: [],
+    };
+
+    const { component } = await setup(undefined, user);
+
+    expect(component.form.getRawValue()['buyerName']).toBe('Administrador');
+    expect(component.form.getRawValue()['buyerEmail']).toBe('admin@eventosvivos.dev');
   });
 });

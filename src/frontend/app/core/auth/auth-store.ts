@@ -88,6 +88,7 @@ function decodeUser(token: string): AuthUser | null {
 
     return {
       name: (claims['name'] as string) ?? '',
+      email: (claims['email'] as string) ?? '',
       role: (claims['role'] as string) ?? '',
       permissions,
     };

@@ -61,7 +61,7 @@ public class LoginHandlerTests
         _permissions.GetPermissionsAsync(UserRole.Admin, Arg.Any<CancellationToken>())
             .Returns(new[] { "events.create" });
         _tokens.CreateIdentityToken(user.Id, UserRole.Admin, Arg.Any<Guid>()).Returns("identity-token");
-        _tokens.CreatePermissionsToken(UserRole.Admin, user.Name, Arg.Any<IReadOnlyList<string>>())
+        _tokens.CreatePermissionsToken(UserRole.Admin, user.Name, user.Email, Arg.Any<IReadOnlyList<string>>())
             .Returns("permissions-token");
 
         var result = await _handler.Handle(new LoginCommand(user.Email, "right"), CancellationToken.None);
