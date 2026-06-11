@@ -40,14 +40,16 @@ describe('HomeComponent', () => {
     expect(screen.getByText('Crear evento')).toBeTruthy();
     expect(screen.getByText('Eventos')).toBeTruthy();
     expect(screen.getByText('Reportes')).toBeTruthy();
-    // The two upcoming sections are flagged as coming soon.
-    expect(screen.getAllByText('Próximamente')).toHaveLength(2);
+    // Only the upcoming report section is flagged as coming soon.
+    expect(screen.getAllByText('Próximamente')).toHaveLength(1);
   });
 
-  it('links the active dashlet to the create-event route', async () => {
+  it('links the active dashlets to their routes', async () => {
     await setup();
 
-    const createLink = screen.getByText('Crear evento').closest('a');
-    expect(createLink?.getAttribute('href')).toBe('/events/create');
+    expect(screen.getByText('Crear evento').closest('a')?.getAttribute('href')).toBe(
+      '/events/create',
+    );
+    expect(screen.getByText('Eventos').closest('a')?.getAttribute('href')).toBe('/events');
   });
 });
