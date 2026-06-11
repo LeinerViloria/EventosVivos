@@ -12,6 +12,9 @@ internal sealed class JwtTokenService(JwtOptions options, IClock clock) : IToken
     /// <summary>Custom claim names shared with the API's token validation and the frontend.</summary>
     public const string SessionClaim = "sid";
     public const string PermissionClaim = "perm";
+    public const string NameClaim = "name";
+
+    public TimeSpan IdentityTokenLifetime => TimeSpan.FromMinutes(options.IdentityTokenMinutes);
 
     public string CreateIdentityToken(Guid userId, UserRole role, Guid sessionId)
     {
@@ -25,9 +28,9 @@ internal sealed class JwtTokenService(JwtOptions options, IClock clock) : IToken
         return Write(claims, options.IdentityTokenMinutes);
     }
 
-    public string CreatePermissionsToken(UserRole role, IReadOnlyList<string> permissions)
+    public string CreatePermissionsToken(UserRole role, string name, IReadOnlyList<string> permissions)
     {
-        List<Claim> claims = [new(ClaimTypes.Role, role.ToString())];
+        List<Claim> claims = [new(ClaimTypes.Role, role.ToString()), new(NameClaim, name)];
         claims.AddRange(permissions.Select(permission => new Claim(PermissionClaim, permission)));
 
         return Write(claims, options.PermissionsTokenMinutes);

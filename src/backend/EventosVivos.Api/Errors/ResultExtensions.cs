@@ -13,6 +13,7 @@ public static class ResultExtensions
         var statusCode = error.Code switch
         {
             "VENUE_NOT_FOUND" => StatusCodes.Status404NotFound,
+            "AUTH_INVALID_CREDENTIALS" => StatusCodes.Status401Unauthorized,
             _ => StatusCodes.Status409Conflict,
         };
 

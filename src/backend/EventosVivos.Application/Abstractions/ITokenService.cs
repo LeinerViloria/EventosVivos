@@ -8,7 +8,10 @@ namespace EventosVivos.Application.Abstractions;
 /// </summary>
 public interface ITokenService
 {
+    /// <summary>Lifetime of the identity token; the Redis session uses the same window.</summary>
+    TimeSpan IdentityTokenLifetime { get; }
+
     string CreateIdentityToken(Guid userId, UserRole role, Guid sessionId);
 
-    string CreatePermissionsToken(UserRole role, IReadOnlyList<string> permissions);
+    string CreatePermissionsToken(UserRole role, string name, IReadOnlyList<string> permissions);
 }
