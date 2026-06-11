@@ -110,6 +110,9 @@ public sealed class Event
         return Result.Success();
     }
 
+    /// <summary>Releases held tickets back to availability (e.g. when a reservation expires).</summary>
+    public void ReleaseTickets(int quantity) => ReservedTickets = Math.Max(0, ReservedTickets - quantity);
+
     public static Result<Event> Create(
         string title,
         string description,

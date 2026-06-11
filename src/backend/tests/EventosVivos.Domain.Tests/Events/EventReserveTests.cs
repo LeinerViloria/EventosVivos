@@ -68,4 +68,16 @@ public class EventReserveTests
         Assert.Equal("RESERVATION_NO_TICKETS_AVAILABLE", result.Error.Code);
         Assert.Equal(0, @event.ReservedTickets);
     }
+
+    [Fact]
+    public void ReleaseTickets_returns_held_tickets_to_availability()
+    {
+        var @event = AnEvent(maxCapacity: 10);
+        @event.Reserve(4, Start.AddHours(-48));
+
+        @event.ReleaseTickets(3);
+
+        Assert.Equal(1, @event.ReservedTickets);
+        Assert.Equal(9, @event.AvailableTickets);
+    }
 }

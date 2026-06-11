@@ -46,6 +46,15 @@ public sealed class Reservation
 
     public DateTime ExpiresAtUtc { get; private set; }
 
+    /// <summary>Expires a pending reservation so its tickets are released. No-op otherwise.</summary>
+    public void Expire()
+    {
+        if (Status == ReservationStatus.PendingPayment)
+        {
+            Status = ReservationStatus.Expired;
+        }
+    }
+
     public static Reservation CreatePending(
         Guid eventId,
         string buyerName,

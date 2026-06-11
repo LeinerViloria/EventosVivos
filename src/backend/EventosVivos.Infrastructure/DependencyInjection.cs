@@ -4,6 +4,7 @@ using EventosVivos.Domain.Events;
 using EventosVivos.Domain.Reservations;
 using EventosVivos.Domain.Users;
 using EventosVivos.Domain.Venues;
+using EventosVivos.Infrastructure.Messaging;
 using EventosVivos.Infrastructure.Persistence;
 using EventosVivos.Infrastructure.Persistence.Repositories;
 using EventosVivos.Infrastructure.Security;
@@ -45,6 +46,13 @@ public static class DependencyInjection
             ConnectionMultiplexer.Connect(BuildRedisOptions(configuration)));
         services.AddSingleton<ISessionStore, RedisSessionStore>();
         services.AddSingleton<IPermissionStore, RedisPermissionStore>();
+
+        // Messaging: expiration sweep + Outbox publisher to RabbitMQ.
+        services.AddSingleton<IEventBus, RabbitMqEventBus>();
+        services.AddScoped<ReservationExpirationProcessor>();
+        services.AddScoped<OutboxProcessor>();
+        services.AddHostedService<ReservationExpirationService>();
+        services.AddHostedService<OutboxPublisherService>();
 
         return services;
     }
