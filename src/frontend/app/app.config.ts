@@ -6,9 +6,9 @@ import Aura from '@primeng/themes/aura';
 import { provideTransloco } from '@jsverse/transloco';
 
 import { routes } from './app.routes';
-import { TranslocoHttpLoader } from './core/transloco-loader';
-import { timezoneInterceptor } from './core/interceptors/timezone.interceptor';
-import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { TranslocoHttpLoader } from '@core/transloco-loader';
+import { timezoneInterceptor } from '@core/interceptors/timezone.interceptor';
+import { errorInterceptor } from '@core/interceptors/error.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [

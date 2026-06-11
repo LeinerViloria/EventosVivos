@@ -1,6 +1,6 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
-import { AppError } from '../../shared/models/app-error';
+import { AppError } from '@shared/models/app-error';
 
 /**
  * Normalizes backend errors (RFC 7807 ProblemDetails) into a typed {@link AppError}, so stores
