@@ -1,0 +1,29 @@
+{
+  "labels": {
+    "app.brand": "Eventos vivos",
+    "app.title": "Sistema de reservas de eventos",
+    "nav.events": "Eventos",
+    "nav.createEvent": "Crear evento"
+  },
+  "enums": {
+    "eventType": { "1": "Conferencia", "2": "Taller", "3": "Concierto" },
+    "eventStatus": { "1": "Activo", "2": "Cancelado", "3": "Completado" }
+  },
+  "errors": {
+    "VENUE_NOT_FOUND": "El lugar no existe.",
+    "VENUE_SCHEDULE_OVERLAP": "Ya hay un evento activo en ese lugar con un horario que se cruza.",
+    "EVENT_CAPACITY_EXCEEDS_VENUE": "La capacidad supera la del lugar ({{venueCapacity}}).",
+    "EVENT_END_NOT_AFTER_START": "La fecha de fin debe ser posterior al inicio.",
+    "EVENT_WEEKEND_NIGHT_START": "Los eventos de fin de semana no pueden iniciar después de las 22:00.",
+    "EVENT_TITLE_LENGTH": "El título debe tener entre 5 y 100 caracteres.",
+    "EVENT_DESCRIPTION_LENGTH": "La descripción debe tener entre 10 y 500 caracteres.",
+    "EVENT_VENUE_REQUIRED": "El lugar es obligatorio.",
+    "EVENT_CAPACITY_POSITIVE": "La capacidad debe ser mayor que cero.",
+    "EVENT_PRICE_POSITIVE": "El precio debe ser mayor que cero.",
+    "EVENT_TYPE_INVALID": "El tipo de evento no es válido.",
+    "EVENT_START_FUTURE": "La fecha de inicio debe ser futura.",
+    "EVENT_END_AFTER_START": "La fecha de fin debe ser posterior al inicio.",
+    "INTERNAL_ERROR": "Ocurrió un error inesperado. Inténtalo de nuevo.",
+    "UNKNOWN_ERROR": "Ocurrió un error."
+  }
+}
