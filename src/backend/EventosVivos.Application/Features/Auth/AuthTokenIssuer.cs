@@ -29,6 +29,6 @@ internal static class AuthTokenIssuer
 
         return new LoginResponse(
             tokens.CreateIdentityToken(user.Id, user.Role, sessionId),
-            tokens.CreatePermissionsToken(user.Role, user.Name, rolePermissions));
+            tokens.CreatePermissionsToken(user.Role, user.Name, user.Email, rolePermissions));
     }
 }

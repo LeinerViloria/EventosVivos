@@ -7,6 +7,9 @@ internal sealed class EventRepository(EventosVivosDbContext context) : IEventRep
 {
     public void Add(Event @event) => context.Events.Add(@event);
 
+    public Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
+        context.Events.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+
     public Task<bool> HasOverlappingActiveEventAsync(
         Guid venueId,
         DateTime startUtc,

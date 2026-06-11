@@ -13,5 +13,9 @@ public interface ITokenService
 
     string CreateIdentityToken(Guid userId, UserRole role, Guid sessionId);
 
-    string CreatePermissionsToken(UserRole role, string name, IReadOnlyList<string> permissions);
+    string CreatePermissionsToken(
+        UserRole role,
+        string name,
+        string email,
+        IReadOnlyList<string> permissions);
 }

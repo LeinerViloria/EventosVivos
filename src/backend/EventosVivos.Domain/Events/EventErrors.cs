@@ -15,4 +15,6 @@ public static class EventErrors
     public static readonly Error VenueNotFound = new("VENUE_NOT_FOUND");
 
     public static readonly Error VenueScheduleOverlap = new("VENUE_SCHEDULE_OVERLAP");
+
+    public static readonly Error NotFound = new("EVENT_NOT_FOUND");
 }

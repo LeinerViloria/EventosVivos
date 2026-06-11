@@ -48,7 +48,16 @@
     "events.column.type": "Tipo",
     "events.column.status": "Estado",
     "events.column.capacity": "Capacidad",
-    "events.column.price": "Precio"
+    "events.column.price": "Precio",
+    "events.column.actions": "Acciones",
+    "reserve.button": "Reservar",
+    "reserve.title": "Reservar entradas",
+    "reserve.available": "Disponibles",
+    "reserve.buyerName": "Nombre del comprador",
+    "reserve.buyerEmail": "Correo del comprador",
+    "reserve.quantity": "Cantidad",
+    "reserve.submit": "Reservar",
+    "reserve.success": "Reserva creada. Tienes unos minutos para pagar."
   },
   "field": {
     "event.title": "Título",
@@ -88,6 +97,15 @@
     "EVENT_TYPE_INVALID": "El tipo de evento no es válido.",
     "EVENT_START_FUTURE": "La fecha de inicio debe ser futura.",
     "EVENT_END_AFTER_START": "La fecha de fin debe ser posterior al inicio.",
+    "EVENT_NOT_FOUND": "El evento no existe.",
+    "RESERVATION_EVENT_NOT_ACTIVE": "El evento no está activo.",
+    "RESERVATION_TOO_LATE": "No se puede reservar: el evento inicia en menos de una hora.",
+    "RESERVATION_LIMIT_EXCEEDED": "Máximo {{limit}} entradas por transacción.",
+    "RESERVATION_NO_TICKETS_AVAILABLE": "No hay suficientes entradas disponibles ({{available}}).",
+    "RESERVATION_BUYER_NAME_REQUIRED": "El nombre del comprador es obligatorio.",
+    "RESERVATION_BUYER_EMAIL_INVALID": "Ingresa un correo electrónico válido.",
+    "RESERVATION_QUANTITY_POSITIVE": "La cantidad debe ser al menos 1.",
+    "RESERVATION_EVENT_REQUIRED": "El evento es obligatorio.",
     "INTERNAL_ERROR": "Ocurrió un error inesperado. Inténtalo de nuevo.",
     "UNKNOWN_ERROR": "Ocurrió un error."
   }

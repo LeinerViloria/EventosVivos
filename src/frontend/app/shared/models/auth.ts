@@ -7,6 +7,7 @@ export interface LoginResponse {
 /** The current user as decoded from the permissions token, used only to drive the UI. */
 export interface AuthUser {
   name: string;
+  email: string;
   role: string;
   permissions: string[];
 }

@@ -1,4 +1,5 @@
 using EventosVivos.Domain.Common;
+using EventosVivos.Domain.Reservations;
 using EventosVivos.Domain.Venues;
 
 namespace EventosVivos.Domain.Events;
@@ -62,6 +63,55 @@ public sealed class Event
     public EventStatus Status { get; private set; }
 
     public int ReservedTickets { get; private set; }
+
+    public int AvailableTickets => MaxCapacity - ReservedTickets;
+
+    /// <summary>
+    /// Reserves <paramref name="quantity"/> tickets, holding them on the denormalized counter that
+    /// the optimistic <c>xmin</c> version protects against overselling. Enforces RN04 (no reservations
+    /// within an hour of the start), RN05 (events over $100 cap at 10 per transaction) and the RF-03
+    /// rule (events starting within 24 hours cap at 5 per transaction).
+    /// </summary>
+    public Result Reserve(int quantity, DateTimeOffset now)
+    {
+        if (Status != EventStatus.Active)
+        {
+            return Result.Failure(ReservationErrors.EventNotActive);
+        }
+
+        var timeUntilStart = StartUtc - now.UtcDateTime;
+        if (timeUntilStart < TimeSpan.FromHours(1))
+        {
+            return Result.Failure(ReservationErrors.TooLate);
+        }
+
+        var limit = int.MaxValue;
+        if (Price > 100m)
+        {
+            limit = Math.Min(limit, 10);
+        }
+
+        if (timeUntilStart < TimeSpan.FromHours(24))
+        {
+            limit = Math.Min(limit, 5);
+        }
+
+        if (quantity > limit)
+        {
+            return Result.Failure(ReservationErrors.QuantityLimitExceeded(limit));
+        }
+
+        if (quantity > AvailableTickets)
+        {
+            return Result.Failure(ReservationErrors.NoTicketsAvailable(AvailableTickets));
+        }
+
+        ReservedTickets += quantity;
+        return Result.Success();
+    }
+
+    /// <summary>Releases held tickets back to availability (e.g. when a reservation expires).</summary>
+    public void ReleaseTickets(int quantity) => ReservedTickets = Math.Max(0, ReservedTickets - quantity);
 
     public static Result<Event> Create(
         string title,

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, WritableSignal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal, WritableSignal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { httpResource } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -10,7 +10,9 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { API_BASE_URL } from '@core/api-base-url';
+import { AuthStore } from '@core/auth/auth-store';
 import { EventsStore } from '@features/events/events-store';
+import { ReserveDialogComponent } from '@features/reservations/reserve-dialog/reserve-dialog.component';
 import { EnumLabelPipe } from '@shared/pipes/enum-label.pipe';
 import { EventType } from '@shared/enums/event-type';
 import { EventStatus } from '@shared/enums/event-status';
@@ -33,6 +35,7 @@ type TagSeverity = 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contr
     EnumLabelPipe,
     DatePipe,
     CurrencyPipe,
+    ReserveDialogComponent,
   ],
   templateUrl: './events-list.component.html',
 })
@@ -40,6 +43,15 @@ export class EventsListComponent {
   private readonly store = inject(EventsStore);
   private readonly apiBase = inject(API_BASE_URL);
   private readonly transloco = inject(TranslocoService);
+  private readonly auth = inject(AuthStore);
+  private readonly destroyRef = inject(DestroyRef);
+
+  /** The event being reserved (drives the reserve dialog); null when closed. */
+  protected readonly selectedEvent = signal<EventListItem | null>(null);
+
+  constructor() {
+    this.connectToStream();
+  }
 
   protected readonly venues = this.store.venues;
 
@@ -140,5 +152,30 @@ export class EventsListComponent {
       default:
         return 'info';
     }
+  }
+
+  protected openReserve(item: EventListItem): void {
+    this.selectedEvent.set(item);
+  }
+
+  protected onReserved(): void {
+    this.selectedEvent.set(null);
+    this.events.reload();
+  }
+
+  /**
+   * Subscribes to the live event stream so released tickets refresh the list. EventSource cannot
+   * send an Authorization header, so the identity token travels in the query string. Guarded for
+   * environments without EventSource (e.g. unit tests).
+   */
+  private connectToStream(): void {
+    const token = this.auth.identityToken();
+    if (typeof EventSource === 'undefined' || !token) {
+      return;
+    }
+
+    const source = new EventSource(`${this.apiBase}/events/stream?access_token=${token}`);
+    source.onmessage = () => this.events.reload();
+    this.destroyRef.onDestroy(() => source.close());
   }
 }

@@ -1,8 +1,10 @@
 using EventosVivos.Application.Abstractions;
 using EventosVivos.Application.Features.Events.ListEvents;
 using EventosVivos.Domain.Events;
+using EventosVivos.Domain.Reservations;
 using EventosVivos.Domain.Users;
 using EventosVivos.Domain.Venues;
+using EventosVivos.Infrastructure.Messaging;
 using EventosVivos.Infrastructure.Persistence;
 using EventosVivos.Infrastructure.Persistence.Repositories;
 using EventosVivos.Infrastructure.Security;
@@ -27,7 +29,13 @@ public static class DependencyInjection
         services.AddScoped<IVenueRepository, VenueRepository>();
         services.AddScoped<IEventListReader, EventListReader>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddSingleton<IClock, SystemClock>();
+
+        services.AddSingleton(new ReservationOptions
+        {
+            TtlMinutes = int.TryParse(configuration["RESERVATION_TTL_MINUTES"], out var ttl) ? ttl : 15,
+        });
 
         // Authentication building blocks.
         services.AddSingleton(JwtOptions.Build(key => configuration[key]));
@@ -38,6 +46,15 @@ public static class DependencyInjection
             ConnectionMultiplexer.Connect(BuildRedisOptions(configuration)));
         services.AddSingleton<ISessionStore, RedisSessionStore>();
         services.AddSingleton<IPermissionStore, RedisPermissionStore>();
+
+        // Messaging: expiration sweep + Outbox publisher to RabbitMQ + real-time fan-out to SSE.
+        services.AddSingleton<IEventBus, RabbitMqEventBus>();
+        services.AddSingleton<EventStreamBroadcaster>();
+        services.AddScoped<ReservationExpirationProcessor>();
+        services.AddScoped<OutboxProcessor>();
+        services.AddHostedService<ReservationExpirationService>();
+        services.AddHostedService<OutboxPublisherService>();
+        services.AddHostedService<RabbitMqEventStreamConsumer>();
 
         return services;
     }

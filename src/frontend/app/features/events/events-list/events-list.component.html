@@ -91,6 +91,7 @@
         <th scope="col">{{ 'labels.events.column.status' | transloco }}</th>
         <th scope="col">{{ 'labels.events.column.capacity' | transloco }}</th>
         <th scope="col">{{ 'labels.events.column.price' | transloco }}</th>
+        <th scope="col">{{ 'labels.events.column.actions' | transloco }}</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-item>
@@ -108,14 +109,29 @@
         </td>
         <td>{{ item.reservedTickets }} / {{ item.maxCapacity }}</td>
         <td>{{ item.price | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+        <td>
+          <p-button
+            [label]="'labels.reserve.button' | transloco"
+            icon="pi pi-ticket"
+            size="small"
+            [outlined]="true"
+            (onClick)="openReserve(item)"
+          />
+        </td>
       </tr>
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="8" class="p-6 text-center text-surface-400">
+        <td colspan="9" class="p-6 text-center text-surface-400">
           {{ 'labels.events.empty' | transloco }}
         </td>
       </tr>
     </ng-template>
   </p-table>
+
+  <app-reserve-dialog
+    [event]="selectedEvent()"
+    (closed)="selectedEvent.set(null)"
+    (reserved)="onReserved()"
+  />
 </section>

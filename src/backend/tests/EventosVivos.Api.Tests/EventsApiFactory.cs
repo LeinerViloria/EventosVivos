@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using EventosVivos.Application.Abstractions;
 using EventosVivos.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using StackExchange.Redis;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
@@ -37,6 +39,13 @@ public sealed class EventsApiFactory : WebApplicationFactory<Program>, IAsyncLif
             services.RemoveAll<IConnectionMultiplexer>();
             services.AddSingleton<IConnectionMultiplexer>(
                 ConnectionMultiplexer.Connect(_redis.GetConnectionString()));
+
+            // Stop the background timers so tests drive the processors deterministically, and
+            // capture published events instead of reaching a real RabbitMQ broker.
+            services.RemoveAll<IHostedService>();
+            services.RemoveAll<IEventBus>();
+            services.AddSingleton<RecordingEventBus>();
+            services.AddSingleton<IEventBus>(sp => sp.GetRequiredService<RecordingEventBus>());
         });
     }
 

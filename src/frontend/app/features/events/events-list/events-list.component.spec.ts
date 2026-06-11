@@ -10,8 +10,10 @@ import { TranslocoTestingModule } from '@jsverse/transloco';
 
 import { EventsListComponent } from './events-list.component';
 import { EventsStore } from '@features/events/events-store';
+import { AuthStore } from '@core/auth/auth-store';
 import { EventType } from '@shared/enums/event-type';
 import { EventStatus } from '@shared/enums/event-status';
+import { EventListItem } from '@shared/models/event';
 
 interface EventsListApi {
   title: WritableSignal<string>;
@@ -21,10 +23,30 @@ interface EventsListApi {
   dateRange: WritableSignal<Date[] | null>;
   page: WritableSignal<number>;
   pageSize: WritableSignal<number>;
+  selectedEvent: WritableSignal<EventListItem | null>;
   onTitleInput: (value: string) => void;
   onLazyLoad: (event: { first?: number; rows?: number }) => void;
   clearFilters: () => void;
   statusSeverity: (status: EventStatus) => string;
+  openReserve: (item: EventListItem) => void;
+  onReserved: () => void;
+}
+
+/** Minimal EventSource stub so the SSE wiring can be exercised under jsdom. */
+class FakeEventSource {
+  static lastUrl: string | undefined;
+  static lastInstance: FakeEventSource | undefined;
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  closed = false;
+
+  constructor(public url: string) {
+    FakeEventSource.lastUrl = url;
+    FakeEventSource.lastInstance = this;
+  }
+
+  close(): void {
+    this.closed = true;
+  }
 }
 
 function api(view: RenderResult<EventsListComponent>): EventsListApi {
@@ -80,7 +102,7 @@ const pageResponse = {
 
 const emptyPage = { items: [], total: 0, page: 1, pageSize: 10 };
 
-async function setup() {
+async function setup(identityToken: string | null = null) {
   const view = await render(EventsListComponent, {
     imports: [
       TranslocoTestingModule.forRoot({
@@ -91,6 +113,7 @@ async function setup() {
     ],
     providers: [
       { provide: EventsStore, useValue: { venues: { value: () => [] } } },
+      { provide: AuthStore, useValue: { identityToken: () => identityToken } },
       provideRouter([]),
       provideHttpClient(),
       provideHttpClientTesting(),
@@ -196,5 +219,34 @@ describe('EventsListComponent', () => {
 
     expect(component.title()).toBe('rock');
     expect(component.page()).toBe(1);
+  });
+
+  it('opens and closes the reserve dialog and reloads after reserving', async () => {
+    const { view, controller } = await setup();
+    controller.expectOne((r) => r.url.includes('/events')).flush(emptyPage);
+    const component = api(view);
+
+    component.openReserve(pageResponse.items[0] as EventListItem);
+    expect(component.selectedEvent()?.id).toBe('e1');
+
+    component.onReserved();
+    expect(component.selectedEvent()).toBeNull();
+  });
+
+  it('subscribes to the event stream when authenticated', async () => {
+    const original = (globalThis as unknown as { EventSource?: unknown }).EventSource;
+    (globalThis as unknown as { EventSource: unknown }).EventSource = FakeEventSource;
+    try {
+      const { controller } = await setup('token-123');
+      controller.expectOne((r) => r.url.includes('/events')).flush(emptyPage);
+
+      expect(FakeEventSource.lastUrl).toContain('/events/stream?access_token=token-123');
+
+      // A stream message triggers a reload without throwing.
+      FakeEventSource.lastInstance?.onmessage?.(new MessageEvent('message'));
+      expect(FakeEventSource.lastInstance?.closed).toBe(false);
+    } finally {
+      (globalThis as unknown as { EventSource?: unknown }).EventSource = original;
+    }
   });
 });

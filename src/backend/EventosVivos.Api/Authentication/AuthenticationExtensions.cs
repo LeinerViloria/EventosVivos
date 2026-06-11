@@ -36,7 +36,13 @@ public static class AuthenticationExtensions
                     ValidateLifetime = true,
                     RoleClaimType = ClaimTypes.Role,
                 };
-                options.Events = new JwtBearerEvents { OnTokenValidated = OnTokenValidatedAsync };
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = OnTokenValidatedAsync,
+                    // EventSource cannot send an Authorization header, so the SSE stream carries
+                    // the identity token in the query string instead.
+                    OnMessageReceived = OnMessageReceived,
+                };
             });
 
         services.AddAuthorization(options =>
@@ -51,6 +57,18 @@ public static class AuthenticationExtensions
         });
 
         return services;
+    }
+
+    private static Task OnMessageReceived(MessageReceivedContext context)
+    {
+        var accessToken = context.Request.Query["access_token"].ToString();
+        if (!string.IsNullOrEmpty(accessToken)
+            && context.Request.Path.StartsWithSegments("/api/v1/events/stream"))
+        {
+            context.Token = accessToken;
+        }
+
+        return Task.CompletedTask;
     }
 
     /// <summary>

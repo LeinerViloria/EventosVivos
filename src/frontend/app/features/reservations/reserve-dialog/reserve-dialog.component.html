@@ -1,0 +1,73 @@
+<p-toast />
+
+<p-dialog
+  [visible]="event() !== null"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '28rem' }"
+  [header]="'labels.reserve.title' | transloco"
+  (onHide)="onHide()"
+>
+  @if (event(); as ev) {
+    <form [formGroup]="form" class="flex flex-col gap-5 pt-2">
+      <p class="text-sm text-surface-400">
+        {{ ev.title }} — {{ 'labels.reserve.available' | transloco }}:
+        {{ ev.maxCapacity - ev.reservedTickets }}
+      </p>
+
+      <p-fluid class="flex flex-col gap-5">
+        <app-field
+          for="buyerName"
+          [label]="'labels.reserve.buyerName' | transloco"
+          [showError]="showError('buyerName')"
+          [errorText]="'errors.RESERVATION_BUYER_NAME_REQUIRED' | transloco"
+        >
+          <input
+            id="buyerName"
+            pInputText
+            formControlName="buyerName"
+            [invalid]="showError('buyerName')"
+          />
+        </app-field>
+
+        <app-field
+          for="buyerEmail"
+          [label]="'labels.reserve.buyerEmail' | transloco"
+          [showError]="showError('buyerEmail')"
+          [errorText]="'errors.RESERVATION_BUYER_EMAIL_INVALID' | transloco"
+        >
+          <input
+            id="buyerEmail"
+            pInputText
+            type="email"
+            formControlName="buyerEmail"
+            [invalid]="showError('buyerEmail')"
+          />
+        </app-field>
+
+        <app-field
+          for="quantity"
+          [label]="'labels.reserve.quantity' | transloco"
+          [showError]="showError('quantity')"
+          [errorText]="'errors.RESERVATION_QUANTITY_POSITIVE' | transloco"
+        >
+          <p-inputnumber
+            inputId="quantity"
+            formControlName="quantity"
+            [min]="1"
+            [invalid]="showError('quantity')"
+          />
+        </app-field>
+      </p-fluid>
+
+      <div class="flex justify-end">
+        <p-button
+          [label]="'labels.reserve.submit' | transloco"
+          icon="pi pi-ticket"
+          [loading]="submitting()"
+          (onClick)="submit()"
+        />
+      </div>
+    </form>
+  }
+</p-dialog>
