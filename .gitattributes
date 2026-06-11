@@ -1,0 +1,6 @@
+# Normaliza los finales de línea a LF en el repositorio, para evitar inconsistencias
+# entre Windows y el runner de Linux de la integración continua.
+* text=auto eol=lf
+
+# Los scripts de shell deben usar LF siempre, para funcionar dentro de contenedores Linux.
+*.sh text eol=lf

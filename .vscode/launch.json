@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend: EventosVivos.Api",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-backend",
+      "program": "${workspaceFolder}/src/backend/EventosVivos.Api/bin/Debug/net10.0/EventosVivos.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/backend/EventosVivos.Api",
+      "stopAtEntry": false,
+      "console": "integratedTerminal",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      }
+    },
+    {
+      "name": "Frontend: Angular (pnpm start)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm start",
+      "cwd": "${workspaceFolder}/src/frontend"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full stack (backend + frontend)",
+      "configurations": [
+        "Backend: EventosVivos.Api",
+        "Frontend: Angular (pnpm start)"
+      ],
+      "stopAll": true
+    }
+  ]
+}

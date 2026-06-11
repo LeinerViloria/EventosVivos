@@ -4,7 +4,7 @@ La calidad del código no se confía a la disciplina individual, sino que se ver
 
 ## Verificaciones automáticas
 
-La primera comprobación es el formato del código. Tal como se describe en el documento [code-conventions](./code-conventions.md), el backend ejecuta `dotnet format --verify-no-changes` y el frontend su linter y formateador equivalentes. Si el código no respeta las reglas definidas en el archivo `.editorconfig`, la construcción falla.
+La primera comprobación es el formato del código. Tal como se describe en el documento [code-conventions](./code-conventions.md), el backend ejecuta `dotnet format --verify-no-changes` y el frontend ejecuta Prettier con `prettier --check`. Si el código no respeta el formato esperado, la construcción falla.
 
 La segunda comprobación es la ejecución de las pruebas automatizadas. Se ejecutan las pruebas del backend, organizadas en los tres niveles descritos en el documento [tdd](./tdd.md), y las pruebas del frontend. Ningún cambio se incorpora si alguna prueba falla.
 

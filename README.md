@@ -1,4 +1,4 @@
-# EventosVivos
+# Sistema de reservas - EventosVivos
 
 Núcleo del sistema de reservas de **EventosVivos**, una startup que organiza eventos culturales, conferencias y talleres. El sistema resuelve el control de capacidad en tiempo real, la gestión de conflictos de horario en los lugares y el ciclo de vida de las reservas y sus pagos. El enunciado completo del problema está en [`docs/ENUNCIADO.md`](./docs/ENUNCIADO.md).
 
@@ -61,18 +61,47 @@ Las convenciones transversales del proyecto (desarrollo guiado por pruebas, mane
    git clone <url-del-repositorio>
    cd EventosVivos
    ```
-2. Levantar el conjunto completo de servicios:
+2. Crear los archivos de entorno a partir de las plantillas (no se versionan):
+   ```bash
+   cp src/backend/.env.example src/backend/.env
+   cp src/frontend/.env.example src/frontend/.env
+   ```
+3. Levantar el conjunto completo de servicios:
    ```bash
    docker compose up --build
    ```
 
-Esto inicia la API, la aplicación web, PostgreSQL, Redis y RabbitMQ. El backend aplica las migraciones y los datos semilla de forma controlada al arrancar, de modo que los lugares de referencia y los usuarios iniciales quedan disponibles sin pasos adicionales.
+Esto inicia la API, la aplicación web, PostgreSQL, Redis y RabbitMQ. El backend aplicará las migraciones y los datos semilla de forma controlada al arrancar, de modo que los lugares de referencia y los usuarios iniciales queden disponibles sin pasos adicionales.
 
 ### Servicios
 
-Una vez iniciados los contenedores, los servicios quedan disponibles en las direcciones definidas por el archivo de Docker Compose, que incluyen la aplicación web, la API y la documentación de la API generada con Scalar. Las direcciones y credenciales concretas se documentan en esta sección a medida que se construye el proyecto.
+Una vez iniciados los contenedores, los servicios quedan disponibles en las siguientes direcciones:
+
+| Servicio | Dirección | Notas |
+|----------|-----------|-------|
+| Aplicación web | http://localhost:4200 | Frontend Angular servido por Nginx |
+| API | http://localhost:8080 | Endpoint de salud: `/health` |
+| PostgreSQL | localhost:5432 | Credenciales en `src/backend/.env` |
+| Redis | localhost:6380 | Puerto de host 6380 → 6379 del contenedor |
+| RabbitMQ | localhost:5672 | Protocolo AMQP |
+| RabbitMQ (panel) | http://localhost:15672 | Interfaz de administración |
+
+Las credenciales de PostgreSQL, Redis y RabbitMQ se toman de `src/backend/.env` (los valores de ejemplo están en `src/backend/.env.example`).
 
 ---
+
+## Integración continua
+
+En cada pull request hacia `main`, GitHub Actions ejecuta **en paralelo** dos flujos independientes, uno para el backend y otro para el frontend. Cada uno comprueba el formato, compila, ejecuta las pruebas con cobertura y envía el análisis a SonarQube Cloud (SonarCloud), cada uno a su propio proyecto. El pull request queda en verde, con todas las verificaciones aprobadas, únicamente cuando ambos flujos terminan correctamente.
+
+Para que el análisis de SonarCloud funcione, el repositorio debe tener configurados los siguientes **secretos** en GitHub (Settings → Secrets and variables → Actions):
+
+- `SONAR_TOKEN`: token de SonarCloud.
+- `SONAR_ORGANIZATION`: organización en SonarCloud.
+- `SONAR_PROJECT_KEY_BACKEND`: project key del proyecto backend.
+- `SONAR_PROJECT_KEY_FRONTEND`: project key del proyecto frontend.
+
+Además, en SonarCloud se deben crear la organización y dos proyectos, uno para el backend y otro para el frontend, vinculados a este repositorio.
 
 ## Documentación
 

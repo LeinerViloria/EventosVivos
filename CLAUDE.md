@@ -25,6 +25,11 @@ Núcleo de un sistema de reservas de eventos. Monorepo: `src/backend` (.NET 10) 
 - Validación: **FluentValidation** para la entrada; el dominio para las invariantes RN01–RN07.
 - Mensajería: **RabbitMQ** como bus oficial + patrón **Outbox**. Tiempo real con **SSE** (token de identidad por query string).
 
+### Configuración y secretos
+- Secretos en un **`.env` por proyecto** (backend y frontend), **ignorado por git**; solo se versiona el `.env.example`. Nunca commitear secretos reales.
+- El `.env` del backend tiene las credenciales de PostgreSQL, Redis y RabbitMQ y los secretos (clave JWT). El `.env` del frontend solo lleva configuración **no sensible** (URL de la API), porque un frontend no puede guardar secretos.
+- docker-compose inyecta los `.env` con `env_file`.
+
 ### Datos
 - **La base de datos resuelve** los cálculos, procesos, búsquedas y la paginación. No traer colecciones a memoria para procesarlas.
 - **Sin SQL puro**: solo LINQ sobre EF Core (method o query syntax).
@@ -37,6 +42,7 @@ Núcleo de un sistema de reservas de eventos. Monorepo: `src/backend` (.NET 10) 
 - Opciones cerradas como **`enum : byte`** en backend y enums numéricos en TypeScript. El contrato viaja con el número; i18n traduce las etiquetas.
 
 ### Frontend (Angular 22)
+- Gestor de paquetes **pnpm**, nunca npm (se habilita con corepack). Aplica a dependencias, scripts, Dockerfile del frontend y CI.
 - Por feature, estado con **signals** y stores basados en servicios (sin NgRx).
 - Capa de datos: **`httpResource`** para lecturas, **`HttpClient`** para comandos. Errores normalizados a `{ errorCode, errorKind, params }` por interceptor.
 - Formularios con **Signal Forms**; los errores de validación usan el `kind` como código del mismo catálogo.

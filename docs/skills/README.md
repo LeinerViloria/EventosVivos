@@ -12,6 +12,7 @@ Las decisiones estructurales del sistema se documentan aparte, en [`ARQUITECTURA
 |-------|-------------|
 | [development-workflow](./development-workflow.md) | Trabajo por ramas, avance secuencial e integración mediante pull request. |
 | [code-conventions](./code-conventions.md) | Idioma del código, formato automático y convenciones de nombres. |
+| [configuration-and-secrets](./configuration-and-secrets.md) | Archivos `.env` por proyecto, ignorados por git, con `.env.example` versionado. |
 | [tdd](./tdd.md) | Desarrollo guiado por pruebas y estrategia de testing por capa. |
 | [data-access](./data-access.md) | La base de datos resuelve los cálculos y búsquedas; LINQ sin SQL puro. |
 | [database-modeling](./database-modeling.md) | Configuración con Fluent API e índices sin redundancia. |
