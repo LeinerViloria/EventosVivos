@@ -1,4 +1,5 @@
 using EventosVivos.Application.Abstractions;
+using EventosVivos.Application.Features.Events.ListEvents;
 using EventosVivos.Domain.Events;
 using EventosVivos.Domain.Venues;
 using EventosVivos.Infrastructure.Persistence;
@@ -21,6 +22,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IVenueRepository, VenueRepository>();
+        services.AddScoped<IEventListReader, EventListReader>();
         services.AddSingleton<IClock, SystemClock>();
 
         return services;

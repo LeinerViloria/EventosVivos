@@ -1,0 +1,116 @@
+<section class="mx-auto max-w-6xl">
+  <header class="mb-6 flex flex-col gap-1">
+    <h1 class="text-3xl font-bold">{{ 'labels.events.title' | transloco }}</h1>
+    <p class="text-surface-400">{{ 'labels.events.subtitle' | transloco }}</p>
+  </header>
+
+  <!-- Filters -->
+  <div
+    class="mb-4 grid grid-cols-1 gap-3 rounded-xl border border-surface-700 bg-surface-900 p-4 md:grid-cols-2 lg:grid-cols-3"
+  >
+    <input
+      pInputText
+      class="w-full"
+      [value]="title()"
+      (input)="onTitleInput($any($event.target).value)"
+      [placeholder]="'labels.events.search' | transloco"
+    />
+    <p-select
+      styleClass="w-full"
+      [options]="typeOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="type()"
+      (ngModelChange)="onFilter(type, $event)"
+      [showClear]="true"
+      [placeholder]="'labels.events.filter.type' | transloco"
+    />
+    <p-select
+      styleClass="w-full"
+      [options]="statusOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="status()"
+      (ngModelChange)="onFilter(status, $event)"
+      [showClear]="true"
+      [placeholder]="'labels.events.filter.status' | transloco"
+    />
+    <p-select
+      styleClass="w-full"
+      [options]="venues.value()"
+      optionLabel="name"
+      optionValue="id"
+      [ngModel]="venueId()"
+      (ngModelChange)="onFilter(venueId, $event)"
+      [showClear]="true"
+      [placeholder]="'labels.events.filter.venue' | transloco"
+    />
+    <p-datepicker
+      styleClass="w-full"
+      selectionMode="range"
+      [readonlyInput]="true"
+      [showButtonBar]="true"
+      [ngModel]="dateRange()"
+      (ngModelChange)="onFilter(dateRange, $event)"
+      [placeholder]="'labels.events.filter.dateRange' | transloco"
+    />
+    <p-button
+      [label]="'labels.events.clear' | transloco"
+      icon="pi pi-filter-slash"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="clearFilters()"
+    />
+  </div>
+
+  <!-- Table -->
+  <p-table
+    [value]="events.value().items"
+    [lazy]="true"
+    (onLazyLoad)="onLazyLoad($event)"
+    [paginator]="true"
+    [rows]="pageSize()"
+    [first]="first()"
+    [totalRecords]="events.value().total"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [loading]="events.isLoading()"
+    dataKey="id"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>{{ 'labels.events.column.title' | transloco }}</th>
+        <th>{{ 'labels.events.column.venue' | transloco }}</th>
+        <th>{{ 'labels.events.column.start' | transloco }}</th>
+        <th>{{ 'labels.events.column.end' | transloco }}</th>
+        <th>{{ 'labels.events.column.type' | transloco }}</th>
+        <th>{{ 'labels.events.column.status' | transloco }}</th>
+        <th>{{ 'labels.events.column.capacity' | transloco }}</th>
+        <th>{{ 'labels.events.column.price' | transloco }}</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td>{{ item.title }}</td>
+        <td>{{ item.venueName }}</td>
+        <td>{{ item.startUtc | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td>{{ item.endUtc | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td>{{ item.type | enumLabel: 'eventType' }}</td>
+        <td>
+          <p-tag
+            [value]="item.status | enumLabel: 'eventStatus'"
+            [severity]="statusSeverity(item.status)"
+          />
+        </td>
+        <td>{{ item.reservedTickets }} / {{ item.maxCapacity }}</td>
+        <td>{{ item.price | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8" class="p-6 text-center text-surface-400">
+          {{ 'labels.events.empty' | transloco }}
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>
