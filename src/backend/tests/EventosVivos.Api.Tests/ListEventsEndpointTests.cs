@@ -70,4 +70,28 @@ public sealed class ListEventsEndpointTests(EventsApiFactory factory) : IClassFi
 
         Assert.Equal(0, nonMatching!.Total);
     }
+
+    [Fact]
+    public async Task Filters_by_status_venue_and_start_date_range()
+    {
+        await CreateEvent("Filter Combo Event", day: 9);
+
+        var matching = await _client.GetFromJsonAsync<PagedResponse>(
+            "/api/v1/events?title=Filter%20Combo&status=1"
+                + $"&venueId={VenueIds.AuditorioCentral}"
+                + "&startFrom=2026-12-01T00:00:00Z&startTo=2026-12-31T23:59:59Z");
+
+        Assert.Equal(1, matching!.Total);
+        Assert.Equal(1, matching.Items[0].Status);
+
+        // A status no event has returns nothing (the status filter is applied).
+        var cancelled = await _client.GetFromJsonAsync<PagedResponse>(
+            "/api/v1/events?title=Filter%20Combo&status=2");
+        Assert.Equal(0, cancelled!.Total);
+
+        // A range that ends before the event excludes it (the date filter is applied).
+        var outOfRange = await _client.GetFromJsonAsync<PagedResponse>(
+            "/api/v1/events?title=Filter%20Combo&startTo=2026-01-01T00:00:00Z");
+        Assert.Equal(0, outOfRange!.Total);
+    }
 }

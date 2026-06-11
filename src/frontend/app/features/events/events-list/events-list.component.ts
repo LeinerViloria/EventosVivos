@@ -69,9 +69,9 @@ export class EventsListComponent {
   protected readonly events = httpResource<PagedResult<EventListItem>>(
     () => {
       const params = new URLSearchParams();
-      const title = this.title().trim();
-      if (title) {
-        params.set('title', title);
+      const titleFilter = this.title().trim();
+      if (titleFilter) {
+        params.set('title', titleFilter);
       }
       if (this.type() !== null) {
         params.set('type', String(this.type()));
@@ -114,7 +114,7 @@ export class EventsListComponent {
   }
 
   protected onLazyLoad(event: TableLazyLoadEvent): void {
-    const rows = event.rows ?? this.pageSize();
+    const rows = event.rows && event.rows > 0 ? event.rows : this.pageSize();
     const first = event.first ?? 0;
     this.pageSize.set(rows);
     this.page.set(Math.floor(first / rows) + 1);
