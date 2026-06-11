@@ -19,7 +19,8 @@ public sealed class LoginEndpoint : IEndpoint
                 ? Results.Ok(result.Value)
                 : result.Error.ToProblemResult();
         })
-        .WithTags("Auth");
+        .WithTags("Auth")
+        .AllowAnonymous();
     }
 }
 

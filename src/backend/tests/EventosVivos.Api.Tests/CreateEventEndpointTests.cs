@@ -6,11 +6,10 @@ namespace EventosVivos.Api.Tests;
 
 public sealed class CreateEventEndpointTests(EventsApiFactory factory) : IClassFixture<EventsApiFactory>
 {
-    private readonly HttpClient _client = factory.CreateClient();
-
     [Fact]
     public async Task Post_creates_event_and_returns_201()
     {
+        var client = await factory.CreateAdminClientAsync();
         var request = new
         {
             title = "Tech Conference",
@@ -23,7 +22,7 @@ public sealed class CreateEventEndpointTests(EventsApiFactory factory) : IClassF
             type = 1,
         };
 
-        var response = await _client.PostAsJsonAsync("/api/v1/events", request);
+        var response = await client.PostAsJsonAsync("/api/v1/events", request);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
@@ -31,6 +30,7 @@ public sealed class CreateEventEndpointTests(EventsApiFactory factory) : IClassF
     [Fact]
     public async Task Post_returns_422_when_input_is_invalid()
     {
+        var client = await factory.CreateAdminClientAsync();
         var request = new
         {
             title = "no",
@@ -43,7 +43,7 @@ public sealed class CreateEventEndpointTests(EventsApiFactory factory) : IClassF
             type = 1,
         };
 
-        var response = await _client.PostAsJsonAsync("/api/v1/events", request);
+        var response = await client.PostAsJsonAsync("/api/v1/events", request);
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
     }
@@ -51,6 +51,7 @@ public sealed class CreateEventEndpointTests(EventsApiFactory factory) : IClassF
     [Fact]
     public async Task Post_returns_409_when_capacity_exceeds_venue()
     {
+        var client = await factory.CreateAdminClientAsync();
         var request = new
         {
             title = "Oversized Event",
@@ -63,7 +64,7 @@ public sealed class CreateEventEndpointTests(EventsApiFactory factory) : IClassF
             type = 1,
         };
 
-        var response = await _client.PostAsJsonAsync("/api/v1/events", request);
+        var response = await client.PostAsJsonAsync("/api/v1/events", request);
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }

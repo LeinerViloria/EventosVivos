@@ -12,4 +12,15 @@ public static class Permissions
     public const string ReservationsConfirm = "reservations.confirm";
     public const string ReservationsCancel = "reservations.cancel";
     public const string ReportsRead = "reports.read";
+
+    /// <summary>Every permission code; used to register one authorization policy per permission.</summary>
+    public static IReadOnlyList<string> All { get; } =
+    [
+        EventsRead,
+        EventsCreate,
+        ReservationsCreate,
+        ReservationsConfirm,
+        ReservationsCancel,
+        ReportsRead,
+    ];
 }

@@ -1,3 +1,5 @@
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using EventosVivos.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -37,6 +39,24 @@ public sealed class EventsApiFactory : WebApplicationFactory<Program>, IAsyncLif
                 ConnectionMultiplexer.Connect(_redis.GetConnectionString()));
         });
     }
+
+    public Task<HttpClient> CreateAdminClientAsync() =>
+        CreateAuthenticatedClientAsync("admin@eventosvivos.dev", "Admin123*");
+
+    public Task<HttpClient> CreateUserClientAsync() =>
+        CreateAuthenticatedClientAsync("usuario@eventosvivos.dev", "Usuario123*");
+
+    private async Task<HttpClient> CreateAuthenticatedClientAsync(string email, string password)
+    {
+        var client = CreateClient();
+        var response = await client.PostAsJsonAsync("/api/v1/auth/login", new { email, password });
+        response.EnsureSuccessStatusCode();
+        var tokens = await response.Content.ReadFromJsonAsync<AuthTokens>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens!.IdentityToken);
+        return client;
+    }
+
+    private sealed record AuthTokens(string IdentityToken, string PermissionsToken);
 
     async Task IAsyncLifetime.InitializeAsync()
     {
