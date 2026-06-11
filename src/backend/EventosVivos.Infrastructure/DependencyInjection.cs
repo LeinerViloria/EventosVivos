@@ -1,6 +1,7 @@
 using EventosVivos.Application.Abstractions;
 using EventosVivos.Application.Features.Events.ListEvents;
 using EventosVivos.Domain.Events;
+using EventosVivos.Domain.Reservations;
 using EventosVivos.Domain.Users;
 using EventosVivos.Domain.Venues;
 using EventosVivos.Infrastructure.Persistence;
@@ -27,7 +28,13 @@ public static class DependencyInjection
         services.AddScoped<IVenueRepository, VenueRepository>();
         services.AddScoped<IEventListReader, EventListReader>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddSingleton<IClock, SystemClock>();
+
+        services.AddSingleton(new ReservationOptions
+        {
+            TtlMinutes = int.TryParse(configuration["RESERVATION_TTL_MINUTES"], out var ttl) ? ttl : 15,
+        });
 
         // Authentication building blocks.
         services.AddSingleton(JwtOptions.Build(key => configuration[key]));
