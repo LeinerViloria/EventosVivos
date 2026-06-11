@@ -17,7 +17,12 @@
     "@angular/forms": "^22.0.0",
     "@angular/platform-browser": "^22.0.0",
     "@angular/router": "^22.0.0",
+    "@jsverse/transloco": "^8.3.0",
+    "@primeng/themes": "^21.0.4",
+    "primeicons": "^7.0.0",
+    "primeng": "^21.1.9",
     "rxjs": "~7.8.0",
+    "tailwindcss-primeui": "^0.6.1",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
@@ -25,6 +30,9 @@
     "@angular/cli": "^22.0.1",
     "@angular/compiler-cli": "^22.0.0",
     "@tailwindcss/postcss": "^4.1.12",
+    "@testing-library/angular": "^19.4.1",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/user-event": "^14.6.1",
     "@vitest/coverage-v8": "^4.1.8",
     "jsdom": "^28.0.0",
     "postcss": "^8.5.3",

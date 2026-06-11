@@ -1,3 +1,21 @@
-<h1>Hello, {{ title() }}</h1>
+<div class="min-h-screen bg-surface-950 text-surface-0">
+  <header class="flex items-center justify-between border-b border-surface-800 px-6 py-3">
+    <a routerLink="/" class="flex items-center gap-2 text-surface-0 no-underline">
+      <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+        <i class="pi pi-calendar text-white"></i>
+      </span>
+      <span class="text-lg font-semibold">Eventos <span class="text-primary">vivos</span></span>
+    </a>
+    <p-button
+      [label]="'labels.nav.home' | transloco"
+      icon="pi pi-home"
+      severity="secondary"
+      [text]="true"
+      (onClick)="goHome()"
+    />
+  </header>
 
-<router-outlet />
+  <main class="px-6 py-8">
+    <router-outlet />
+  </main>
+</div>

@@ -1,0 +1,194 @@
+<p-toast />
+
+<div class="mx-auto max-w-2xl">
+  <form
+    [formGroup]="form"
+    class="flex flex-col gap-5 rounded-2xl border border-surface-700 bg-surface-900 p-8"
+  >
+    <header class="flex flex-col gap-1">
+      <h1 class="text-2xl font-semibold">{{ 'labels.nav.createEvent' | transloco }}</h1>
+      <p class="text-sm text-surface-400">{{ 'labels.event.subtitle' | transloco }}</p>
+    </header>
+
+    <p-fluid class="flex flex-col gap-5">
+      <!-- Title -->
+      <div class="flex flex-col gap-1.5">
+        <label for="title" class="font-medium">
+          {{ 'field.event.title' | transloco }} <span class="text-red-500">*</span>
+        </label>
+        <input id="title" pInputText formControlName="title" [invalid]="showError('title')" />
+        @if (showError('title')) {
+          <p-message
+            severity="error"
+            variant="simple"
+            size="small"
+            [text]="'errors.EVENT_TITLE_LENGTH' | transloco"
+          />
+        }
+      </div>
+
+      <!-- Description -->
+      <div class="flex flex-col gap-1.5">
+        <label for="description" class="font-medium">
+          {{ 'field.event.description' | transloco }} <span class="text-red-500">*</span>
+        </label>
+        <textarea
+          id="description"
+          pTextarea
+          rows="3"
+          formControlName="description"
+          [invalid]="showError('description')"
+        ></textarea>
+        @if (showError('description')) {
+          <p-message
+            severity="error"
+            variant="simple"
+            size="small"
+            [text]="'errors.EVENT_DESCRIPTION_LENGTH' | transloco"
+          />
+        }
+      </div>
+
+      <!-- Venue -->
+      <div class="flex flex-col gap-1.5">
+        <label class="font-medium">
+          {{ 'field.event.venue' | transloco }} <span class="text-red-500">*</span>
+        </label>
+        <p-select
+          formControlName="venueId"
+          [options]="venues.value()"
+          optionLabel="name"
+          optionValue="id"
+          [placeholder]="'field.event.venuePlaceholder' | transloco"
+          [invalid]="showError('venueId')"
+        />
+        @if (showError('venueId')) {
+          <p-message
+            severity="error"
+            variant="simple"
+            size="small"
+            [text]="'errors.EVENT_VENUE_REQUIRED' | transloco"
+          />
+        }
+      </div>
+
+      <!-- Capacity + Price -->
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div class="flex flex-col gap-1.5">
+          <label class="font-medium">
+            {{ 'field.event.capacity' | transloco }} <span class="text-red-500">*</span>
+          </label>
+          <p-inputnumber
+            formControlName="maxCapacity"
+            [min]="1"
+            [invalid]="showError('maxCapacity')"
+          />
+          @if (showError('maxCapacity')) {
+            <p-message
+              severity="error"
+              variant="simple"
+              size="small"
+              [text]="'errors.required' | transloco"
+            />
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="font-medium">
+            {{ 'field.event.price' | transloco }} <span class="text-red-500">*</span>
+          </label>
+          <p-inputnumber
+            formControlName="price"
+            mode="currency"
+            currency="COP"
+            locale="es-CO"
+            [min]="0"
+            [invalid]="showError('price')"
+          />
+          <small class="text-surface-400">{{ 'field.event.priceHint' | transloco }}</small>
+        </div>
+      </div>
+
+      <!-- Start + End -->
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div class="flex flex-col gap-1.5">
+          <label class="font-medium">
+            {{ 'field.event.start' | transloco }} <span class="text-red-500">*</span>
+          </label>
+          <p-datepicker
+            formControlName="startsAt"
+            [showTime]="true"
+            hourFormat="24"
+            [invalid]="showError('startsAt')"
+          />
+          @if (showError('startsAt')) {
+            <p-message
+              severity="error"
+              variant="simple"
+              size="small"
+              [text]="'errors.required' | transloco"
+            />
+          }
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="font-medium">
+            {{ 'field.event.end' | transloco }} <span class="text-red-500">*</span>
+          </label>
+          <p-datepicker
+            formControlName="endsAt"
+            [showTime]="true"
+            hourFormat="24"
+            [invalid]="showError('endsAt')"
+          />
+          @if (showError('endsAt')) {
+            <p-message
+              severity="error"
+              variant="simple"
+              size="small"
+              [text]="'errors.required' | transloco"
+            />
+          }
+        </div>
+      </div>
+
+      <!-- Type -->
+      <div class="flex flex-col gap-1.5">
+        <label class="font-medium">
+          {{ 'field.event.type' | transloco }} <span class="text-red-500">*</span>
+        </label>
+        <p-select
+          formControlName="eventType"
+          [options]="typeOptions"
+          optionLabel="label"
+          optionValue="value"
+          [placeholder]="'field.event.typePlaceholder' | transloco"
+          [invalid]="showError('eventType')"
+        />
+        @if (showError('eventType')) {
+          <p-message
+            severity="error"
+            variant="simple"
+            size="small"
+            [text]="'errors.required' | transloco"
+          />
+        }
+      </div>
+    </p-fluid>
+
+    <div class="flex justify-end gap-3 pt-2">
+      <p-button
+        [label]="'labels.event.cancel' | transloco"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="cancel()"
+      />
+      <p-button
+        [label]="'labels.event.submit' | transloco"
+        icon="pi pi-check"
+        [loading]="submitting()"
+        (onClick)="submit()"
+      />
+    </div>
+  </form>
+</div>

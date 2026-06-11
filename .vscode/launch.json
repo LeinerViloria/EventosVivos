@@ -11,6 +11,7 @@
       "cwd": "${workspaceFolder}/src/backend/EventosVivos.Api",
       "stopAtEntry": false,
       "console": "integratedTerminal",
+      "envFile": "${workspaceFolder}/src/backend/.env",
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

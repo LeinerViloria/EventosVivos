@@ -1,0 +1,57 @@
+{
+  "labels": {
+    "app.brand": "Eventos vivos",
+    "app.title": "Sistema de reservas de eventos",
+    "nav.home": "Inicio",
+    "nav.createEvent": "Crear evento",
+    "panel.title": "Panel",
+    "panel.subtitle": "Gestiona los eventos de tu organización",
+    "dashlet.createEvent.title": "Crear evento",
+    "dashlet.createEvent.desc": "Registra un nuevo evento",
+    "dashlet.createEvent.action": "Ir al formulario",
+    "dashlet.events.title": "Eventos",
+    "dashlet.events.desc": "Consulta y administra los eventos",
+    "dashlet.reports.title": "Reportes",
+    "dashlet.reports.desc": "Reportes de ocupación",
+    "badge.comingSoon": "Próximamente",
+    "event.subtitle": "Completa los datos del nuevo evento. Los campos marcados con * son obligatorios.",
+    "event.submit": "Crear evento",
+    "event.cancel": "Cancelar",
+    "event.created": "Evento creado correctamente."
+  },
+  "field": {
+    "event.title": "Título",
+    "event.description": "Descripción",
+    "event.venue": "Lugar",
+    "event.capacity": "Capacidad máxima",
+    "event.start": "Fecha y hora de inicio",
+    "event.end": "Fecha y hora de fin",
+    "event.price": "Precio de entrada",
+    "event.priceHint": "Moneda: COP",
+    "event.type": "Tipo de evento",
+    "event.venuePlaceholder": "Selecciona un lugar",
+    "event.typePlaceholder": "Selecciona un tipo"
+  },
+  "enums": {
+    "eventType": { "1": "Conferencia", "2": "Taller", "3": "Concierto" },
+    "eventStatus": { "1": "Activo", "2": "Cancelado", "3": "Completado" }
+  },
+  "errors": {
+    "required": "Este campo es obligatorio.",
+    "VENUE_NOT_FOUND": "El lugar no existe.",
+    "VENUE_SCHEDULE_OVERLAP": "Ya hay un evento activo en ese lugar con un horario que se cruza.",
+    "EVENT_CAPACITY_EXCEEDS_VENUE": "La capacidad supera la del lugar ({{venueCapacity}}).",
+    "EVENT_END_NOT_AFTER_START": "La fecha de fin debe ser posterior al inicio.",
+    "EVENT_WEEKEND_NIGHT_START": "Los eventos de fin de semana no pueden iniciar después de las 22:00.",
+    "EVENT_TITLE_LENGTH": "El título debe tener entre 5 y 100 caracteres.",
+    "EVENT_DESCRIPTION_LENGTH": "La descripción debe tener entre 10 y 500 caracteres.",
+    "EVENT_VENUE_REQUIRED": "El lugar es obligatorio.",
+    "EVENT_CAPACITY_POSITIVE": "La capacidad debe ser mayor que cero.",
+    "EVENT_PRICE_POSITIVE": "El precio debe ser mayor que cero.",
+    "EVENT_TYPE_INVALID": "El tipo de evento no es válido.",
+    "EVENT_START_FUTURE": "La fecha de inicio debe ser futura.",
+    "EVENT_END_AFTER_START": "La fecha de fin debe ser posterior al inicio.",
+    "INTERNAL_ERROR": "Ocurrió un error inesperado. Inténtalo de nuevo.",
+    "UNKNOWN_ERROR": "Ocurrió un error."
+  }
+}

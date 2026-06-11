@@ -54,3 +54,15 @@ En el frontend se siguen las convenciones estándar de Angular y TypeScript. Las
 ## Gestor de paquetes del frontend
 
 El gestor de paquetes del frontend es **pnpm**. No se usa npm. Esta regla abarca la instalación de dependencias, la ejecución de scripts y la generación del proyecto, y se refleja también en el Dockerfile del frontend y en el pipeline de integración continua, que utilizan pnpm. pnpm se habilita mediante corepack, que viene incluido con Node, de modo que no es necesario instalar nada con npm.
+
+## Alias de rutas en el frontend
+
+En el frontend se usan **alias de rutas de TypeScript** en lugar de rutas relativas con `../..`. Se configuran en `tsconfig.json`, dentro de `compilerOptions.paths`, y permiten importar por alias en vez de navegar por carpetas:
+
+| Alias | Apunta a |
+|-------|----------|
+| `@core/*` | `app/core/*` |
+| `@shared/*` | `app/shared/*` |
+| `@features/*` | `app/features/*` |
+
+Así, un import queda como `@shared/models/venue` en lugar de `../../shared/models/venue`. Tanto la compilación de Angular como Vitest respetan estos alias.

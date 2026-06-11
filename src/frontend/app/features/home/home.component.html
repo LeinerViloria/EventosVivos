@@ -1,0 +1,60 @@
+<section class="mx-auto max-w-6xl">
+  <h1 class="text-3xl font-bold">{{ 'labels.panel.title' | transloco }}</h1>
+  <p class="mt-1 text-surface-400">{{ 'labels.panel.subtitle' | transloco }}</p>
+
+  <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+    <!-- Crear evento (active) -->
+    <a
+      routerLink="/events/create"
+      class="group flex flex-col rounded-xl border border-surface-700 bg-surface-900 p-6 no-underline text-surface-0 transition hover:border-primary"
+    >
+      <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white">
+        <i class="pi pi-plus text-xl"></i>
+      </span>
+      <h2 class="mt-4 text-xl font-semibold">
+        {{ 'labels.dashlet.createEvent.title' | transloco }}
+      </h2>
+      <p class="mt-1 text-surface-400">{{ 'labels.dashlet.createEvent.desc' | transloco }}</p>
+      <span class="mt-4 inline-flex items-center gap-1 font-medium text-primary">
+        {{ 'labels.dashlet.createEvent.action' | transloco }}
+        <i class="pi pi-arrow-right text-sm"></i>
+      </span>
+    </a>
+
+    <!-- Eventos (coming soon) -->
+    <div
+      class="relative flex flex-col rounded-xl border border-surface-700 bg-surface-900 p-6 opacity-60"
+    >
+      <span
+        class="absolute right-4 top-4 rounded-full border border-surface-600 px-2 py-0.5 text-xs text-surface-300"
+      >
+        {{ 'labels.badge.comingSoon' | transloco }}
+      </span>
+      <span
+        class="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-700 text-surface-300"
+      >
+        <i class="pi pi-list text-xl"></i>
+      </span>
+      <h2 class="mt-4 text-xl font-semibold">{{ 'labels.dashlet.events.title' | transloco }}</h2>
+      <p class="mt-1 text-surface-400">{{ 'labels.dashlet.events.desc' | transloco }}</p>
+    </div>
+
+    <!-- Reportes (coming soon) -->
+    <div
+      class="relative flex flex-col rounded-xl border border-surface-700 bg-surface-900 p-6 opacity-60"
+    >
+      <span
+        class="absolute right-4 top-4 rounded-full border border-surface-600 px-2 py-0.5 text-xs text-surface-300"
+      >
+        {{ 'labels.badge.comingSoon' | transloco }}
+      </span>
+      <span
+        class="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-700 text-surface-300"
+      >
+        <i class="pi pi-chart-bar text-xl"></i>
+      </span>
+      <h2 class="mt-4 text-xl font-semibold">{{ 'labels.dashlet.reports.title' | transloco }}</h2>
+      <p class="mt-1 text-surface-400">{{ 'labels.dashlet.reports.desc' | transloco }}</p>
+    </div>
+  </div>
+</section>

@@ -15,6 +15,7 @@ Las decisiones estructurales del sistema se documentan aparte, en [`ARQUITECTURA
 | [configuration-and-secrets](./configuration-and-secrets.md) | Archivos `.env` por proyecto, ignorados por git, con `.env.example` versionado. |
 | [tdd](./tdd.md) | Desarrollo guiado por pruebas y estrategia de testing por capa. |
 | [data-access](./data-access.md) | La base de datos resuelve los cálculos y búsquedas; LINQ sin SQL puro. |
+| [search-endpoints](./search-endpoints.md) | Los selectores de campos relacionados se sirven en endpoints `/search`. |
 | [database-modeling](./database-modeling.md) | Configuración con Fluent API e índices sin redundancia. |
 | [error-handling](./error-handling.md) | Contrato de códigos de error compartido entre backend y frontend. |
 | [form-validation](./form-validation.md) | Validación con Signal Forms; estructura en el cliente, reglas de negocio en el servidor. |

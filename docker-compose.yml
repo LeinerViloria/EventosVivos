@@ -46,6 +46,12 @@ services:
     build:
       context: ./src/backend
     env_file: ./src/backend/.env
+    environment:
+      # Dentro de la red de Docker los hosts son los nombres de servicio,
+      # sobreescribiendo los valores localhost del .env (pensados para la ejecución local).
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      RABBITMQ_HOST: rabbitmq
     ports:
       - "8080:8080"
     networks:

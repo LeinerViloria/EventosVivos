@@ -21,7 +21,7 @@ Núcleo de un sistema de reservas de eventos. Monorepo: `src/backend` (.NET 10) 
 - Clean Architecture + Vertical Slices + dominio con comportamiento. Mediator `martinothamar/Mediator` con pipeline behaviors.
 - Errores: `Result<T>` para negocio, excepciones para lo excepcional; todo error con `errorCode` **string** + `errorKind` + `params`, traducido a ProblemDetails. El backend **nunca** envía texto de usuario.
 - Concurrencia: bloqueo optimista con **`xmin`** + reintento. Sobre `Event` para la capacidad; sobre `Venue` para el solape de horarios (RN02).
-- Endpoints: Minimal APIs, un `IEndpoint` por slice, agrupados por `MapGroup`, versionados en `/api/v1`, documentados con **Scalar**.
+- Endpoints: Minimal APIs, un `IEndpoint` por slice, agrupados por `MapGroup`, versionados en `/api/v1`, documentados con **Scalar**. Los selectores de campos relacionados se sirven en endpoints terminados en **`/search`** (p. ej. `GET /api/v1/venues/search`).
 - Validación: **FluentValidation** para la entrada; el dominio para las invariantes RN01–RN07.
 - Mensajería: **RabbitMQ** como bus oficial + patrón **Outbox**. Tiempo real con **SSE** (token de identidad por query string).
 

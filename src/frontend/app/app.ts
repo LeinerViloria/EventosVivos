@@ -1,12 +1,18 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, RouterLink, ButtonModule, TranslocoModule],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App {
-  protected readonly title = signal('eventosvivos');
+  private readonly router = inject(Router);
+
+  protected goHome(): void {
+    this.router.navigate(['/']);
+  }
 }
