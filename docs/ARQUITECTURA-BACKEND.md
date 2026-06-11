@@ -166,6 +166,14 @@ disponibles = capacidad − Σ(quantity WHERE estado ∈ {pending_payment, confi
 
 El bloqueo ocurre al **crear** la reserva (desde `pending_payment`), no al confirmar; de lo contrario habría oversell durante la ventana de pago.
 
+### Solape de horarios por venue (RN02)
+
+La regla RN02 establece que dos eventos activos no pueden compartir el mismo venue con horarios superpuestos. Este es un problema de concurrencia distinto del overselling, pero **se resuelve con el mismo mecanismo de concurrencia optimista con `xmin`**, aplicado esta vez sobre el agregado que gobierna la agenda: el `Venue`.
+
+La diferencia está en que el solape no surge al actualizar una fila existente, sino al insertar dos eventos nuevos a la vez para el mismo venue. Como son filas nuevas, no comparten ninguna versión sobre la cual chocar. Por eso, al crear un evento se **incrementa la versión del `Venue`** correspondiente. Dos creaciones concurrentes sobre el mismo venue leen la misma versión, ambas intentan guardar, una gana y la otra obtiene `DbUpdateConcurrencyException`. La perdedora reintenta dentro del `TransactionBehavior`, vuelve a leer el estado, ahora ve el evento recién creado y rechaza la operación con el código de error `VENUE_SCHEDULE_OVERLAP`.
+
+De esta manera, el solape de horarios queda protegido por la misma estrategia que la capacidad: concurrencia optimista con `xmin` y reintento, sobre el `Venue` para RN02 igual que sobre el `Event` para el control de entradas.
+
 ---
 
 ## 7. Expiración de reservas y máquinas de estado
@@ -252,7 +260,11 @@ var reports      = v1.MapGroup("/reports").WithTags("Reports");
 - **Tiempos en UTC**: el backend opera y persiste **solo en UTC**. El frontend envía la zona horaria del cliente en un **header** por petición; la conversión a hora local es responsabilidad del front.
 - **Opciones cerradas como `enum : byte`**: estado de evento, estado de reserva, tipo de evento, rol. El contrato de API viaja con el **valor numérico**; la traducción de etiquetas la hace i18n en el front.
 - **Migraciones controladas por el backend**: EF Core migrations versionadas (no `EnsureCreated`).
-- **Datos semilla controlados e idempotentes**: ej. Venues (Auditorio Central, Sala Norte, Arena Sur).
+- **Datos semilla controlados e idempotentes**. Se siembran únicamente datos de referencia y de acceso, nunca datos transaccionales:
+  - **Venues**: los tres lugares de referencia del enunciado (Auditorio Central con capacidad 200 en Bogotá, Sala Norte con capacidad 50 en Bogotá y Arena Sur con capacidad 500 en Medellín).
+  - **Usuarios**: al menos un administrador y un usuario común. Como el enunciado no incluye registro de usuarios, sin esta semilla no habría forma de iniciar sesión ni de probar la aplicación de extremo a extremo.
+  - **Catálogo de permisos por rol**: la definición de qué puede hacer cada rol, sembrada como configuración en Redis (ver sección 13).
+  - Los eventos y las reservas no se siembran: son datos transaccionales que se crean desde la aplicación. Tampoco hay tablas de catálogo para estados, tipos ni roles, porque se modelan como `enum : byte`.
 - **PK = Guid v7** (nativo de Postgres 18, ordenable temporalmente → mejor para índices que Guid v4).
 
 ---
