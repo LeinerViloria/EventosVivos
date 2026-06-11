@@ -6,7 +6,9 @@ El frontend implementa internacionalización con soporte para un único idioma: 
 
 Se utiliza Transloco, una librería de internacionalización en tiempo de ejecución. Esta elección responde a que el frontend traduce claves que solo se conocen en ejecución, como los códigos de error que llegan del backend y los valores numéricos de las enumeraciones; el enfoque de compilación de `@angular/localize`, pensado para textos estáticos de las plantillas, no resuelve eso con naturalidad.
 
-La capa de internacionalización es responsable de traducir tres tipos de contenido: las etiquetas de la interfaz, los valores de las enumeraciones y los códigos de error descritos en el documento [error-handling](./error-handling.md). Las traducciones residen en un único archivo `es-CO.json` con tres secciones, una por cada tipo de contenido. Adicionalmente, se registra el locale `es-CO` para que los formatos de fecha, número y moneda sigan la convención colombiana.
+La capa de internacionalización es responsable de traducir las etiquetas de la interfaz, las etiquetas de los campos de formulario, los valores de las enumeraciones y los códigos de error descritos en el documento [error-handling](./error-handling.md). Las traducciones residen en un único archivo `es-CO.json` organizado en secciones: `labels` para las etiquetas generales de la interfaz, `field` para las etiquetas de los campos de formulario, `enums` para los valores de las enumeraciones y `errors` para los códigos de error.
+
+Las etiquetas de los **campos de formulario** se identifican con el segmento `field` en su clave, por ejemplo `field.event.title`. Esto distingue las etiquetas de campos del resto de textos de la interfaz y mantiene una convención uniforme para todos los formularios. Adicionalmente, se registra el locale `es-CO` para que los formatos de fecha, número y moneda sigan la convención colombiana.
 
 ## Enumeraciones numéricas
 

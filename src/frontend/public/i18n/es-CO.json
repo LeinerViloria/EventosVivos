@@ -3,13 +3,28 @@
     "app.brand": "Eventos vivos",
     "app.title": "Sistema de reservas de eventos",
     "nav.events": "Eventos",
-    "nav.createEvent": "Crear evento"
+    "nav.createEvent": "Crear evento",
+    "event.submit": "Crear evento",
+    "event.created": "Evento creado correctamente."
+  },
+  "field": {
+    "event.title": "Título",
+    "event.description": "Descripción",
+    "event.venue": "Lugar",
+    "event.capacity": "Capacidad máxima",
+    "event.start": "Fecha y hora de inicio",
+    "event.end": "Fecha y hora de fin",
+    "event.price": "Precio de entrada",
+    "event.type": "Tipo de evento",
+    "event.venuePlaceholder": "Selecciona un lugar",
+    "event.typePlaceholder": "Selecciona un tipo"
   },
   "enums": {
     "eventType": { "1": "Conferencia", "2": "Taller", "3": "Concierto" },
     "eventStatus": { "1": "Activo", "2": "Cancelado", "3": "Completado" }
   },
   "errors": {
+    "required": "Este campo es obligatorio.",
     "VENUE_NOT_FOUND": "El lugar no existe.",
     "VENUE_SCHEDULE_OVERLAP": "Ya hay un evento activo en ese lugar con un horario que se cruza.",
     "EVENT_CAPACITY_EXCEEDS_VENUE": "La capacidad supera la del lugar ({{venueCapacity}}).",

@@ -1,2 +1,98 @@
-<h1 class="text-2xl font-semibold">{{ 'labels.nav.createEvent' | transloco }}</h1>
-<p class="mt-2">{{ store.venues.value().length }} lugares disponibles</p>
+<p-toast />
+
+<h1 class="mb-4 text-2xl font-semibold">{{ 'labels.nav.createEvent' | transloco }}</h1>
+
+<form [formGroup]="form" class="flex max-w-2xl flex-col gap-4">
+  <!-- Title -->
+  <div class="flex flex-col gap-1">
+    <label for="title" class="font-medium">{{ 'field.event.title' | transloco }}</label>
+    <input id="title" pInputText formControlName="title" />
+    @if (form.controls.title.invalid && (form.controls.title.touched || submitted())) {
+      <p-message severity="error" [text]="'errors.EVENT_TITLE_LENGTH' | transloco" />
+    }
+  </div>
+
+  <!-- Description -->
+  <div class="flex flex-col gap-1">
+    <label for="description" class="font-medium">{{ 'field.event.description' | transloco }}</label>
+    <textarea id="description" pTextarea rows="3" formControlName="description"></textarea>
+    @if (form.controls.description.invalid && (form.controls.description.touched || submitted())) {
+      <p-message severity="error" [text]="'errors.EVENT_DESCRIPTION_LENGTH' | transloco" />
+    }
+  </div>
+
+  <!-- Venue -->
+  <div class="flex flex-col gap-1">
+    <label class="font-medium">{{ 'field.event.venue' | transloco }}</label>
+    <p-select
+      formControlName="venueId"
+      [options]="venues.value()"
+      optionLabel="name"
+      optionValue="id"
+      [placeholder]="'field.event.venuePlaceholder' | transloco"
+    />
+    @if (form.controls.venueId.invalid && (form.controls.venueId.touched || submitted())) {
+      <p-message severity="error" [text]="'errors.EVENT_VENUE_REQUIRED' | transloco" />
+    }
+  </div>
+
+  <!-- Max capacity -->
+  <div class="flex flex-col gap-1">
+    <label class="font-medium">{{ 'field.event.capacity' | transloco }}</label>
+    <p-inputnumber formControlName="maxCapacity" [min]="1" />
+    @if (form.controls.maxCapacity.invalid && (form.controls.maxCapacity.touched || submitted())) {
+      <p-message severity="error" [text]="'errors.required' | transloco" />
+    }
+  </div>
+
+  <!-- Start -->
+  <div class="flex flex-col gap-1">
+    <label class="font-medium">{{ 'field.event.start' | transloco }}</label>
+    <p-datepicker formControlName="startsAt" [showTime]="true" hourFormat="24" />
+    @if (form.controls.startsAt.invalid && (form.controls.startsAt.touched || submitted())) {
+      <p-message severity="error" [text]="'errors.required' | transloco" />
+    }
+  </div>
+
+  <!-- End -->
+  <div class="flex flex-col gap-1">
+    <label class="font-medium">{{ 'field.event.end' | transloco }}</label>
+    <p-datepicker formControlName="endsAt" [showTime]="true" hourFormat="24" />
+    @if (form.controls.endsAt.invalid && (form.controls.endsAt.touched || submitted())) {
+      <p-message severity="error" [text]="'errors.required' | transloco" />
+    }
+  </div>
+
+  <!-- Price -->
+  <div class="flex flex-col gap-1">
+    <label class="font-medium">{{ 'field.event.price' | transloco }}</label>
+    <p-inputnumber formControlName="price" [min]="0" [maxFractionDigits]="2" />
+    @if (form.controls.price.invalid && (form.controls.price.touched || submitted())) {
+      <p-message severity="error" [text]="'errors.required' | transloco" />
+    }
+  </div>
+
+  <!-- Type -->
+  <div class="flex flex-col gap-1">
+    <label class="font-medium">{{ 'field.event.type' | transloco }}</label>
+    <p-select
+      formControlName="eventType"
+      [options]="typeOptions"
+      optionLabel="label"
+      optionValue="value"
+      [placeholder]="'field.event.typePlaceholder' | transloco"
+    />
+    @if (form.controls.eventType.invalid && (form.controls.eventType.touched || submitted())) {
+      <p-message severity="error" [text]="'errors.required' | transloco" />
+    }
+  </div>
+
+  <div class="mt-2">
+    <p-button
+      [label]="'labels.event.submit' | transloco"
+      icon="pi pi-check"
+      [loading]="submitting()"
+      (onClick)="submit()"
+    />
+  </div>
+</form>

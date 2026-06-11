@@ -14,6 +14,10 @@ El servidor valida las reglas de negocio y es su fuente de verdad. Cuando una re
 
 Cada error de Signal Forms expone un identificador de tipo, su `kind`. Ese `kind` se usa como código de error, tomado del mismo catálogo que comparten el backend y el frontend, y se traduce en la plantilla mediante internacionalización, interpolando los parámetros cuando los haya. La consecuencia es que los errores de validación del cliente y los errores que devuelve el servidor se muestran con un único mecanismo: un código que la internacionalización convierte en texto legible. Esto aplica tanto a los validadores integrados como a los personalizados, y evita mantener dos sistemas de mensajes en paralelo. El contrato de códigos de error se describe en el documento [error-handling](./error-handling.md).
 
+## Enlace con los componentes de PrimeNG
+
+La directiva nativa `[formField]` de Signal Forms no compila sobre los componentes de PrimeNG 21, porque el chequeo de tipos de plantilla espera que el anfitrión implemente el contrato `FormUiControl`/`FormValueControl`, y esos componentes se construyen sobre `ControlValueAccessor` con inputs cuyos nombres y tipos colisionan con dicho contrato. Por eso, mientras PrimeNG no publique una versión alineada con Angular 22, los formularios se enlazan con el puente `@angular/forms/signals/compat`: cada campo se declara como un `SignalFormControl` con sus reglas de Signal Forms, se agrupa en un `FormGroup` y se enlaza en la plantilla con `formControlName`. Se conserva así la autoría de la validación en Signal Forms y se cumple la regla de no usar HTML crudo.
+
 ## Sin librerías de esquema
 
 Signal Forms admite validación por esquema con librerías como Zod o Valibot. No se utilizan en el proyecto. Los validadores nativos y personalizados cubren las necesidades de validación sin añadir dependencias y mantienen las reglas junto a la definición del formulario.
