@@ -3,23 +3,25 @@
   <p class="mt-1 text-surface-400">{{ 'labels.panel.subtitle' | transloco }}</p>
 
   <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-    <!-- Crear evento (active) -->
-    <a
-      routerLink="/events/create"
-      class="group flex flex-col rounded-xl border border-surface-700 bg-surface-900 p-6 no-underline text-surface-0 transition hover:border-primary"
-    >
-      <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white">
-        <i class="pi pi-plus text-xl"></i>
-      </span>
-      <h2 class="mt-4 text-xl font-semibold">
-        {{ 'labels.dashlet.createEvent.title' | transloco }}
-      </h2>
-      <p class="mt-1 text-surface-400">{{ 'labels.dashlet.createEvent.desc' | transloco }}</p>
-      <span class="mt-4 inline-flex items-center gap-1 font-medium text-primary">
-        {{ 'labels.dashlet.createEvent.action' | transloco }}
-        <i class="pi pi-arrow-right text-sm"></i>
-      </span>
-    </a>
+    <!-- Crear evento (active, admin only) -->
+    @if (auth.hasPermission('events.create')) {
+      <a
+        routerLink="/events/create"
+        class="group flex flex-col rounded-xl border border-surface-700 bg-surface-900 p-6 no-underline text-surface-0 transition hover:border-primary"
+      >
+        <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white">
+          <i class="pi pi-plus text-xl"></i>
+        </span>
+        <h2 class="mt-4 text-xl font-semibold">
+          {{ 'labels.dashlet.createEvent.title' | transloco }}
+        </h2>
+        <p class="mt-1 text-surface-400">{{ 'labels.dashlet.createEvent.desc' | transloco }}</p>
+        <span class="mt-4 inline-flex items-center gap-1 font-medium text-primary">
+          {{ 'labels.dashlet.createEvent.action' | transloco }}
+          <i class="pi pi-arrow-right text-sm"></i>
+        </span>
+      </a>
+    }
 
     <!-- Eventos -->
     <a

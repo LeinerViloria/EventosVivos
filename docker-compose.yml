@@ -51,6 +51,7 @@ services:
       # sobreescribiendo los valores localhost del .env (pensados para la ejecución local).
       POSTGRES_HOST: postgres
       REDIS_HOST: redis
+      REDIS_PORT: "6379"
       RABBITMQ_HOST: rabbitmq
     ports:
       - "8080:8080"

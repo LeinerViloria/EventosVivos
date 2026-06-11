@@ -1,3 +1,4 @@
+using EventosVivos.Api.Authentication;
 using EventosVivos.Api.Endpoints;
 using EventosVivos.Api.Errors;
 using EventosVivos.Application;
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApiAuthentication(builder.Configuration);
 builder.Services.AddEndpoints(typeof(Program).Assembly);
 
 builder.Services.AddOpenApi();
@@ -19,15 +21,19 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 var app = builder.Build();
 
 await app.Services.ApplyMigrationsAsync();
+await AuthDataSeeder.SeedAsync(app.Services);
 
 app.UseExceptionHandler();
 
-app.MapOpenApi();
-app.MapScalarApiReference();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapOpenApi().AllowAnonymous();
+app.MapScalarApiReference().AllowAnonymous();
 
 app.MapEndpoints();
 
-app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 
 app.Run();
 

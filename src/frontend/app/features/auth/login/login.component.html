@@ -1,0 +1,68 @@
+<p-toast />
+
+<div class="flex min-h-[70vh] items-center justify-center">
+  <form
+    [formGroup]="form"
+    class="flex w-full max-w-sm flex-col gap-5 rounded-2xl border border-surface-700 bg-surface-900 p-8"
+  >
+    <header class="flex flex-col gap-1">
+      <h1 class="text-2xl font-semibold">{{ 'labels.auth.login.title' | transloco }}</h1>
+      <p class="text-sm text-surface-400">{{ 'labels.auth.login.subtitle' | transloco }}</p>
+    </header>
+
+    <p-fluid class="flex flex-col gap-5">
+      <div class="flex flex-col gap-1.5">
+        <label for="email" class="font-medium">
+          {{ 'labels.auth.email' | transloco }} <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="email"
+          pInputText
+          type="email"
+          formControlName="email"
+          [invalid]="showError('email')"
+        />
+        @if (showError('email')) {
+          <p-message
+            severity="error"
+            variant="simple"
+            size="small"
+            [text]="'errors.AUTH_EMAIL_INVALID' | transloco"
+          />
+        }
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label for="password" class="font-medium">
+          {{ 'labels.auth.password' | transloco }} <span class="text-red-500">*</span>
+        </label>
+        <p-password
+          inputId="password"
+          formControlName="password"
+          [feedback]="false"
+          [toggleMask]="true"
+          [invalid]="showError('password')"
+        />
+        @if (showError('password')) {
+          <p-message
+            severity="error"
+            variant="simple"
+            size="small"
+            [text]="'errors.AUTH_PASSWORD_REQUIRED' | transloco"
+          />
+        }
+      </div>
+    </p-fluid>
+
+    <p-button
+      [label]="'labels.auth.submit' | transloco"
+      icon="pi pi-sign-in"
+      [loading]="submitting()"
+      (onClick)="submit()"
+    />
+
+    <a routerLink="/register" class="text-center text-sm text-primary no-underline">
+      {{ 'labels.auth.register.link' | transloco }}
+    </a>
+  </form>
+</div>

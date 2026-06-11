@@ -1,5 +1,6 @@
 using EventosVivos.Api.Errors;
 using EventosVivos.Application.Features.Events.CreateEvent;
+using EventosVivos.Application.Security;
 using EventosVivos.Domain.Events;
 using Mediator;
 
@@ -30,7 +31,8 @@ public sealed class CreateEventEndpoint : IEndpoint
                 ? Results.Created($"/api/v1/events/{result.Value.Id}", result.Value)
                 : result.Error.ToProblemResult();
         })
-        .WithTags("Events");
+        .WithTags("Events")
+        .RequireAuthorization(Permissions.EventsCreate);
     }
 }
 

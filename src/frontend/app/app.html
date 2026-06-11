@@ -6,13 +6,28 @@
       </span>
       <span class="text-lg font-semibold">Eventos <span class="text-primary">vivos</span></span>
     </a>
-    <p-button
-      [label]="'labels.nav.home' | transloco"
-      icon="pi pi-home"
-      severity="secondary"
-      [text]="true"
-      (onClick)="goHome()"
-    />
+
+    @if (auth.isAuthenticated()) {
+      <div class="flex items-center gap-2">
+        <span class="mr-2 text-sm text-surface-300">
+          {{ 'labels.auth.greeting' | transloco: { name: auth.user()?.name } }}
+        </span>
+        <p-button
+          [label]="'labels.nav.home' | transloco"
+          icon="pi pi-home"
+          severity="secondary"
+          [text]="true"
+          (onClick)="goHome()"
+        />
+        <p-button
+          [label]="'labels.auth.logout' | transloco"
+          icon="pi pi-sign-out"
+          severity="secondary"
+          [text]="true"
+          (onClick)="logout()"
+        />
+      </div>
+    }
   </header>
 
   <main class="px-6 py-8">

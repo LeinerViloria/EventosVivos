@@ -5,14 +5,12 @@ namespace EventosVivos.Api.Tests;
 
 public sealed class ListEventsEndpointTests(EventsApiFactory factory) : IClassFixture<EventsApiFactory>
 {
-    private readonly HttpClient _client = factory.CreateClient();
-
     private sealed record PagedResponse(List<EventRow> Items, int Total, int Page, int PageSize);
 
     private sealed record EventRow(Guid Id, string Title, string VenueName, int Type, int Status);
 
     // Each event uses a distinct day to avoid the RN02 schedule-overlap rule at the same venue.
-    private async Task CreateEvent(string title, int day, int type = 1)
+    private static async Task CreateEvent(HttpClient client, string title, int day, int type = 1)
     {
         var start = new DateTimeOffset(2026, 12, day, 18, 0, 0, TimeSpan.Zero);
         var request = new
@@ -27,17 +25,18 @@ public sealed class ListEventsEndpointTests(EventsApiFactory factory) : IClassFi
             type,
         };
 
-        var response = await _client.PostAsJsonAsync("/api/v1/events", request);
+        var response = await client.PostAsJsonAsync("/api/v1/events", request);
         response.EnsureSuccessStatusCode();
     }
 
     [Fact]
     public async Task Lists_events_filtered_by_title_and_paginates_on_the_server()
     {
-        await CreateEvent("Sonar Listing Alpha", day: 1);
-        await CreateEvent("Sonar Listing Beta", day: 2);
+        var client = await factory.CreateAdminClientAsync();
+        await CreateEvent(client, "Sonar Listing Alpha", day: 1);
+        await CreateEvent(client, "Sonar Listing Beta", day: 2);
 
-        var firstPage = await _client.GetFromJsonAsync<PagedResponse>(
+        var firstPage = await client.GetFromJsonAsync<PagedResponse>(
             "/api/v1/events?title=Sonar%20Listing&page=1&pageSize=1");
 
         Assert.NotNull(firstPage);
@@ -46,7 +45,7 @@ public sealed class ListEventsEndpointTests(EventsApiFactory factory) : IClassFi
         Assert.Equal(1, firstPage.Page);
         Assert.Equal(1, firstPage.PageSize);
 
-        var secondPage = await _client.GetFromJsonAsync<PagedResponse>(
+        var secondPage = await client.GetFromJsonAsync<PagedResponse>(
             "/api/v1/events?title=Sonar%20Listing&page=2&pageSize=1");
 
         Assert.Single(secondPage!.Items);
@@ -56,16 +55,17 @@ public sealed class ListEventsEndpointTests(EventsApiFactory factory) : IClassFi
     [Fact]
     public async Task Filters_by_type_and_searches_title_case_insensitively()
     {
-        await CreateEvent("TypeFilter Workshop", day: 5, type: 2);
+        var client = await factory.CreateAdminClientAsync();
+        await CreateEvent(client, "TypeFilter Workshop", day: 5, type: 2);
 
-        var matching = await _client.GetFromJsonAsync<PagedResponse>(
+        var matching = await client.GetFromJsonAsync<PagedResponse>(
             "/api/v1/events?title=typefilter&type=2");
 
         Assert.Equal(1, matching!.Total);
         Assert.Equal("TypeFilter Workshop", matching.Items[0].Title);
         Assert.Equal("Auditorio Central", matching.Items[0].VenueName);
 
-        var nonMatching = await _client.GetFromJsonAsync<PagedResponse>(
+        var nonMatching = await client.GetFromJsonAsync<PagedResponse>(
             "/api/v1/events?title=typefilter&type=1");
 
         Assert.Equal(0, nonMatching!.Total);
@@ -74,9 +74,10 @@ public sealed class ListEventsEndpointTests(EventsApiFactory factory) : IClassFi
     [Fact]
     public async Task Filters_by_status_venue_and_start_date_range()
     {
-        await CreateEvent("Filter Combo Event", day: 9);
+        var client = await factory.CreateAdminClientAsync();
+        await CreateEvent(client, "Filter Combo Event", day: 9);
 
-        var matching = await _client.GetFromJsonAsync<PagedResponse>(
+        var matching = await client.GetFromJsonAsync<PagedResponse>(
             "/api/v1/events?title=Filter%20Combo&status=1"
                 + $"&venueId={VenueIds.AuditorioCentral}"
                 + "&startFrom=2026-12-01T00:00:00Z&startTo=2026-12-31T23:59:59Z");
@@ -84,13 +85,11 @@ public sealed class ListEventsEndpointTests(EventsApiFactory factory) : IClassFi
         Assert.Equal(1, matching!.Total);
         Assert.Equal(1, matching.Items[0].Status);
 
-        // A status no event has returns nothing (the status filter is applied).
-        var cancelled = await _client.GetFromJsonAsync<PagedResponse>(
+        var cancelled = await client.GetFromJsonAsync<PagedResponse>(
             "/api/v1/events?title=Filter%20Combo&status=2");
         Assert.Equal(0, cancelled!.Total);
 
-        // A range that ends before the event excludes it (the date filter is applied).
-        var outOfRange = await _client.GetFromJsonAsync<PagedResponse>(
+        var outOfRange = await client.GetFromJsonAsync<PagedResponse>(
             "/api/v1/events?title=Filter%20Combo&startTo=2026-01-01T00:00:00Z");
         Assert.Equal(0, outOfRange!.Total);
     }

@@ -1,4 +1,5 @@
 using EventosVivos.Application.Features.Events.ListEvents;
+using EventosVivos.Application.Security;
 using EventosVivos.Domain.Events;
 using Mediator;
 
@@ -26,6 +27,7 @@ public sealed class ListEventsEndpoint : IEndpoint
             var result = await sender.Send(query, cancellationToken);
             return Results.Ok(result);
         })
-        .WithTags("Events");
+        .WithTags("Events")
+        .RequireAuthorization(Permissions.EventsRead);
     }
 }

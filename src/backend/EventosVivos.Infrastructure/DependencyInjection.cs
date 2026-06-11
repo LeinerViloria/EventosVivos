@@ -1,13 +1,16 @@
 using EventosVivos.Application.Abstractions;
 using EventosVivos.Application.Features.Events.ListEvents;
 using EventosVivos.Domain.Events;
+using EventosVivos.Domain.Users;
 using EventosVivos.Domain.Venues;
 using EventosVivos.Infrastructure.Persistence;
 using EventosVivos.Infrastructure.Persistence.Repositories;
+using EventosVivos.Infrastructure.Security;
 using EventosVivos.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 
 namespace EventosVivos.Infrastructure;
 
@@ -23,8 +26,34 @@ public static class DependencyInjection
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IVenueRepository, VenueRepository>();
         services.AddScoped<IEventListReader, EventListReader>();
+        services.AddScoped<IUserRepository, UserRepository>();
         services.AddSingleton<IClock, SystemClock>();
 
+        // Authentication building blocks.
+        services.AddSingleton(JwtOptions.Build(key => configuration[key]));
+        services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
+        services.AddSingleton<ITokenService, JwtTokenService>();
+
+        services.AddSingleton<IConnectionMultiplexer>(_ =>
+            ConnectionMultiplexer.Connect(BuildRedisOptions(configuration)));
+        services.AddSingleton<ISessionStore, RedisSessionStore>();
+        services.AddSingleton<IPermissionStore, RedisPermissionStore>();
+
         return services;
+    }
+
+    private static ConfigurationOptions BuildRedisOptions(IConfiguration configuration)
+    {
+        var host = configuration["REDIS_HOST"] ?? "localhost";
+        var port = configuration["REDIS_PORT"] ?? "6379";
+
+        var options = new ConfigurationOptions
+        {
+            EndPoints = { $"{host}:{port}" },
+            Password = configuration["REDIS_PASSWORD"],
+            AbortOnConnectFail = false,
+        };
+
+        return options;
     }
 }

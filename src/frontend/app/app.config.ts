@@ -10,6 +10,7 @@ import { routes } from './app.routes';
 import { TranslocoHttpLoader } from '@core/transloco-loader';
 import { timezoneInterceptor } from '@core/interceptors/timezone.interceptor';
 import { errorInterceptor } from '@core/interceptors/error.interceptor';
+import { authInterceptor } from '@core/interceptors/auth.interceptor';
 
 /** Aura with the brand's blue/cyan as the primary color. */
 const AppTheme = definePreset(Aura, {
@@ -34,7 +35,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([timezoneInterceptor, errorInterceptor])),
+    provideHttpClient(withInterceptors([timezoneInterceptor, errorInterceptor, authInterceptor])),
     providePrimeNG({
       theme: { preset: AppTheme, options: { darkModeSelector: '.dark' } },
     }),
