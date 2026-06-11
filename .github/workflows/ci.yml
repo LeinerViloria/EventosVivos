@@ -1,5 +1,5 @@
-# Integración continua: un único pipeline secuencial que analiza primero el backend
-# y luego el frontend. El PR queda en verde ("All checks passed") cuando el job termina bien.
+# Integración continua: backend y frontend se analizan en paralelo (jobs independientes).
+# El PR queda en verde ("All checks passed") solo cuando ambos jobs terminan correctamente.
 #
 # Configuración requerida en el repositorio de GitHub (Settings):
 #   Secret:
@@ -17,8 +17,8 @@ on:
     branches: [main]
 
 jobs:
-  ci:
-    name: CI
+  backend:
+    name: Backend CI
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,11 +26,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      # --- Toolchains ---
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+
+      - name: Verify formatting
+        working-directory: src/backend
+        run: dotnet format EventosVivos.sln --verify-no-changes
 
       - name: Setup Java (requerido por SonarScanner)
         uses: actions/setup-java@v4
@@ -38,23 +41,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Enable pnpm
-        run: corepack enable
-
-      # --- Backend ---
-      - name: Backend - verify formatting
-        working-directory: src/backend
-        run: dotnet format EventosVivos.sln --verify-no-changes
-
       - name: Install SonarScanner for .NET
         run: dotnet tool install --global dotnet-sonarscanner
 
-      - name: Backend - build, test and analyze
+      - name: Build, test and analyze
         working-directory: src/backend
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -73,20 +63,36 @@ jobs:
             --results-directory ./TestResults
           dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
 
-      # --- Frontend ---
-      - name: Frontend - install dependencies
+  frontend:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Install dependencies
         working-directory: src/frontend
         run: pnpm install --frozen-lockfile
 
-      - name: Frontend - verify formatting
+      - name: Verify formatting
         working-directory: src/frontend
         run: pnpm exec prettier --check .
 
-      - name: Frontend - test with coverage
+      - name: Test with coverage
         working-directory: src/frontend
         run: pnpm exec ng test --watch=false --coverage --coverage-reporters=lcovonly
 
-      - name: Frontend - SonarCloud scan
+      - name: SonarCloud scan
         uses: SonarSource/sonarqube-scan-action@v5
         with:
           projectBaseDir: src/frontend
