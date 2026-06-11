@@ -1,0 +1,128 @@
+# Arquitectura del Frontend — EventosVivos
+
+> Documento de socialización. Igual que en el backend, las decisiones se toman de
+> forma argumentada. El frontend usa **Angular 22.0.0**, una versión publicada el 3 de
+> junio de 2026, por lo que este documento incluye un glosario de los términos nuevos
+> que introduce. Las convenciones transversales viven en la carpeta
+> [`skills/`](./skills/README.md) y el contrato con el backend, en
+> [`ARQUITECTURA-BACKEND.md`](./ARQUITECTURA-BACKEND.md).
+
+---
+
+## 1. Glosario de términos de Angular
+
+Angular 22 consolida un conjunto de conceptos que conviene aclarar antes de describir la arquitectura, porque varios de ellos son recientes.
+
+Un **signal** es un contenedor de un valor que notifica automáticamente a quien lo usa cuando ese valor cambia. La interfaz se redibuja al cambiar los signals que consume, sin necesidad de mecanismos externos de detección.
+
+La **era signal-first** es la dirección que adopta Angular 22, en la que los signals son el mecanismo primario para manejar el estado de la aplicación, por encima de otras herramientas que antes cumplían ese papel.
+
+El **modo zoneless** significa que Angular ya no depende de la librería Zone.js para detectar cambios. En su lugar, los signals indican con precisión qué cambió y qué debe redibujarse. En Angular 22 este modo es el comportamiento por defecto y produce un renderizado más predecible y eficiente.
+
+La estrategia **OnPush** es la forma en que un componente decide cuándo volver a dibujarse: solo cuando cambian sus entradas o los signals que utiliza, en lugar de hacerlo ante cualquier evento. En Angular 22 es el comportamiento por defecto y se complementa de forma natural con los signals.
+
+La **Resource API** y, en particular, **`httpResource`**, son la forma declarativa de obtener datos del servidor. Se describe un recurso a partir de signals, el recurso se vuelve a consultar por sí solo cuando cambian sus entradas y expone su estado como signals de valor, error, indicador de carga y estado general. Maneja además las condiciones de carrera automáticamente, descartando los resultados de peticiones que quedaron obsoletas.
+
+Los **Signal Forms** son la API estable de formularios basada en signals, con validación integrada, pensada para el modo zoneless y con menos código repetitivo que las formas anteriores.
+
+Un **store basado en servicios** es un servicio de Angular que encapsula el estado de una feature mediante signals y expone los métodos para modificarlo. Es la unidad donde vive la lógica de datos de cada feature.
+
+**Vitest** es el ejecutor de pruebas que Angular 22 adopta por defecto para proyectos nuevos, en reemplazo de Karma, que quedó descontinuado. Ofrece mayor velocidad y una mejor integración con las técnicas modernas de prueba.
+
+---
+
+## 2. Decisión arquitectónica
+
+La arquitectura del frontend se organiza **por features**, y el estado se maneja con **signals nativos y stores basados en servicios**, sin recurrir a una librería de manejo de estado.
+
+Esta decisión sigue la estrategia por niveles que recomienda el propio equipo de Angular y las guías de arquitectura de 2026: usar signals para el estado local y simple, un store basado en servicios para el estado compartido de una feature, y graduarse a una librería únicamente cuando la complejidad lo exija. Para un alcance de seis requerimientos funcionales, los stores por servicio son exactamente el punto adecuado. Incorporar una librería como NgRx sería una sobreingeniería que el tamaño del problema no justifica.
+
+Si en el futuro la complejidad creciera, el camino de evolución natural sería `@ngrx/signals`, que hoy se alinea con los signals y permite reunir el estado, sus actualizadores y sus efectos en un único archivo por feature. Queda señalado como evolución posible, no como necesidad actual.
+
+---
+
+## 3. Estructura de carpetas
+
+El frontend reside en `src/frontend/` dentro del monorepo. Para evitar la doble carpeta `src` que el CLI de Angular genera por defecto, se personaliza el proyecto mediante las propiedades `root` y `sourceRoot` de `angular.json`, de manera que `src/frontend` sea directamente la raíz del código. Así, archivos como `main.ts` e `index.html` residen en `src/frontend` y el código de la aplicación vive en `src/frontend/app`.
+
+```
+src/                          # Monorepo
+  backend/                    # Proyectos .NET (ver ARQUITECTURA-BACKEND.md)
+  frontend/                   # Proyecto Angular — raíz del código (sourceRoot)
+    index.html
+    main.ts
+    app/
+      core/                   # Interceptores (autorización, zona horaria, errores),
+                              #   guards, servicio de Server-Sent Events y
+                              #   configuración base de HttpClient
+      shared/                 # Componentes de interfaz reutilizables, pipes
+                              #   (traducción de enums, fechas locales), modelos y enums
+      features/
+        events/               # Listado, creación y detalle de eventos
+        reservations/         # Reserva, confirmación de pago y cancelación
+        reports/              # Reporte de ocupación
+        auth/                 # Inicio de sesión y manejo de los dos tokens
+      i18n/                   # Traducciones es-CO (etiquetas, enums y códigos de error)
+```
+
+La ruta de la aplicación desde la raíz del repositorio queda como `src/frontend/app`, sin la repetición de `src`. El único matiz es que esta disposición se aparta de la convención por defecto del CLI, que asume una carpeta `src`; en la práctica no genera inconvenientes, porque las herramientas leen la ruta configurada en `angular.json`.
+
+Cada feature contiene su propio store basado en servicios, sus componentes y sus pruebas, de modo que el trabajo de una feature queda contenido en su carpeta.
+
+---
+
+## 4. Capa de datos
+
+La capa de datos distingue entre lecturas y comandos, porque son operaciones de naturaleza distinta y se resuelven con herramientas distintas.
+
+### Lecturas con `httpResource`
+
+Las lecturas se modelan con `httpResource`, aprovechando su carácter reactivo. El caso más representativo es el listado de eventos con filtros (RF-02): los filtros viven como signals y el recurso se vuelve a consultar por sí solo cuando alguno cambia, sin orquestación manual y descartando respuestas obsoletas. El mismo enfoque aplica al detalle de un evento y al reporte de ocupación (RF-06). El componente no llama al API directamente, sino que lee los signals de valor, carga y error que expone el recurso.
+
+Todo listado se pagina en el servidor, no solo el de eventos. Por eso, en las lecturas que devuelven listas, la página y el tamaño de página también viven como signals y forman parte de la petición del `httpResource`: al cambiar la página, el recurso se vuelve a consultar automáticamente. La respuesta incluye los metadatos de la paginación, como la página actual, el tamaño y el total de elementos, para que la interfaz pueda mostrar los controles de navegación.
+
+### Comandos con `HttpClient`
+
+Los comandos son las operaciones que cambian el estado del servidor y que dispara una acción del usuario: crear un evento (RF-01), reservar entradas (RF-03), confirmar un pago (RF-04) y cancelar una reserva (RF-05). No son recursos reactivos, sino llamadas imperativas, y se realizan con `HttpClient` desde el store de la feature. Forzarlos dentro de `httpResource` sería usar la herramienta para algo que no le corresponde.
+
+### Dónde vive la lógica de datos
+
+Tanto los recursos de lectura como los comandos viven en el store basado en servicios de cada feature. El store expone los signals derivados de los recursos y los métodos para los comandos, y los componentes solo consumen esos signals. Así, la lógica de datos queda fuera de los componentes y resulta fácil de probar con Vitest.
+
+### Interceptores transversales
+
+Tres preocupaciones transversales se resuelven en un único lugar, mediante interceptores de `HttpClient`. Como `httpResource` utiliza `HttpClient` por debajo, los interceptores aplican por igual a lecturas y comandos. El primer interceptor inyecta el token de identidad en la cabecera de autorización. El segundo inyecta la zona horaria del cliente en su cabecera, según el manejo de fechas descrito en los skills. El tercero normaliza los errores.
+
+### Normalización de errores
+
+Un interceptor captura las respuestas de error del backend, interpreta el `ProblemDetails` y lo convierte en un error tipado de la aplicación, con la forma `{ errorCode, errorKind, params }`. De esta manera, ni los stores ni los componentes manipulan respuestas HTTP crudas: siempre reciben un error con código, que traducen mediante internacionalización usando los parámetros para interpolar, tal como define el contrato de errores. El signal de error de cada `httpResource` contiene ya ese error normalizado.
+
+### Revalidación y eventos en vivo
+
+Cuando un comando termina con éxito, el store vuelve a cargar el recurso de lectura afectado, de modo que la vista refleje el nuevo estado. Para las notificaciones en tiempo real, el servicio de Server-Sent Events alimenta un signal de disponibilidad; cuando llega una liberación de entradas, ese signal se actualiza y, según el caso, refresca el recurso correspondiente para que la vista muestre la disponibilidad actualizada sin intervención del usuario.
+
+---
+
+## 5. Formularios con Signal Forms
+
+Los formularios se construyen con Signal Forms, la API estable de Angular 22 para formularios basados en signals. La función `form()` crea un árbol de campos reactivo que refleja el modelo del formulario, y cada campo expone su estado como signals: si es válido o inválido, su lista de errores, si tiene una validación asíncrona en curso y si el usuario ya lo tocó o lo modificó. El estado se propaga hacia arriba, de modo que el formulario completo es inválido si alguno de sus campos lo es. La directiva `FormRoot` maneja el envío: marca todos los campos como tocados para revelar los errores y, solo si el formulario es válido, ejecuta la acción de envío.
+
+### Validación del formulario de creación de evento (RF-01)
+
+El formulario de creación de evento se apoya en los tres tipos de validación que ofrece Signal Forms. Los validadores integrados cubren los campos obligatorios y las longitudes del título y la descripción, así como los mínimos del precio y la capacidad. Un validador personalizado verifica que la fecha de inicio sea futura, comparándola con la hora actual. Una validación cruzada verifica que la fecha de fin sea posterior a la de inicio, leyendo el valor del otro campo. La capacidad menor o igual a la del venue también se valida en el cliente, porque la capacidad del venue ya está disponible al haberse cargado los venues, lo que ofrece retroalimentación inmediata.
+
+### Los errores de validación usan el mismo contrato de códigos
+
+Cada error de Signal Forms tiene un identificador de tipo, su `kind`. Ese `kind` se usa como código de error, alineado con el mismo catálogo que comparten backend y frontend, y se traduce en la plantilla mediante internacionalización, interpolando los parámetros. De esta manera, los errores de validación del cliente se muestran con exactamente el mismo mecanismo que los errores del servidor: un código que la internacionalización convierte en texto en español de Colombia. No existen dos sistemas de mensajes, sino uno solo, tanto para los validadores integrados como para los personalizados.
+
+### División de responsabilidades entre cliente y servidor
+
+El cliente valida la estructura de la entrada y las comprobaciones cruzadas de bajo costo, con el fin de dar retroalimentación inmediata. Las reglas de negocio, RN01 a RN07, son responsabilidad del servidor y constituyen su fuente de verdad. Cuando una de ellas no se cumple, el servidor responde con un `ProblemDetails` que incluye su código de error, el cual el frontend ya sabe traducir y mostrar. No se reimplementan esas reglas como validadores asíncronos en el cliente, porque duplicar la lógica abriría la puerta a discrepancias entre cliente y servidor. Por defecto, las reglas de negocio se resuelven en el momento del envío, a través de la respuesta de error del comando.
+
+Signal Forms admite además la validación por esquema con librerías como Zod o Valibot. No se utiliza en este proyecto, porque los validadores nativos y personalizados cubren RF-01 sin añadir una dependencia adicional y mantienen la validación junto a la definición del formulario.
+
+---
+
+## 6. Temas pendientes de definir
+
+Las siguientes secciones se completarán a medida que se discutan: el detalle de la internacionalización y el manejo de enumeraciones numéricas en el frontend, el servicio de Server-Sent Events y su autenticación, la estrategia de pruebas con Vitest y la presentación de errores en la interfaz.

@@ -243,6 +243,10 @@ var reports      = v1.MapGroup("/reports").WithTags("Reports");
 - **Endpoint delgado**: recibe request → `mediator.Send` → traduce `Result` a HTTP.
 - **Documentación**: OpenAPI nativo (`Microsoft.AspNetCore.OpenApi`, **no** Swashbuckle) + **Scalar** (`MapScalarApiReference()`). La agrupación en Scalar se logra con `WithTags` por área.
 
+### Paginación de listados
+
+Como regla general, todo endpoint que devuelve un listado se pagina en el servidor, no solo el de eventos (RF-02). La petición recibe la página y el tamaño de página, la base de datos resuelve la paginación (sin traer todos los registros a memoria) y la respuesta entrega una sola página junto con los metadatos de paginación, como la página actual, el tamaño y el total de elementos.
+
 ---
 
 ## 11. Validaciones — dónde vive cada una

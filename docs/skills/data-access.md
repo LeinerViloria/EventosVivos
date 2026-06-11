@@ -8,6 +8,8 @@ Traer colecciones completas a memoria para filtrarlas, ordenarlas, recorrerlas o
 
 Esta preferencia es especialmente relevante en dos requerimientos del enunciado. El listado de eventos con filtros opcionales (RF-02) aplica cada filtro y cada búsqueda directamente en la consulta. El reporte de ocupación (RF-06) calcula sus sumas, conteos y porcentajes mediante agregaciones en la base de datos, sin traer las reservas a memoria para sumarlas en código.
 
+Como regla general, todo listado se pagina en el servidor, no solo el de eventos. La base de datos resuelve la paginación, y la consulta devuelve una sola página junto con los metadatos necesarios, como el total de elementos. Nunca se traen todos los registros a memoria para paginarlos en código.
+
 ## Sin SQL puro
 
 No se utiliza SQL puro, es decir, no se escriben cadenas de SQL a mano ni se recurre a mecanismos como `FromSqlRaw`. Todo el acceso a datos se expresa con LINQ sobre Entity Framework Core.
