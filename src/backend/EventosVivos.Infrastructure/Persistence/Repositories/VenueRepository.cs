@@ -9,4 +9,22 @@ internal sealed class VenueRepository(EventosVivosDbContext context) : IVenueRep
         context.Venues.FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
 
     public void Touch(Venue venue) => context.Entry(venue).State = EntityState.Modified;
+
+    public async Task<IReadOnlyList<Venue>> SearchAsync(
+        string? term,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        var query = context.Venues.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(term))
+        {
+            query = query.Where(v => EF.Functions.ILike(v.Name, $"%{term}%"));
+        }
+
+        return await query
+            .OrderBy(v => v.Name)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+    }
 }

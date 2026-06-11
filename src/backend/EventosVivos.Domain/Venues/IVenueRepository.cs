@@ -9,4 +9,10 @@ public interface IVenueRepository
     /// concurrency token (xmin), serializing concurrent event creations for the same venue.
     /// </summary>
     void Touch(Venue venue);
+
+    /// <summary>
+    /// Optionally filtered search used to populate venue selectors. Returns a limited set of
+    /// matches; no total count is computed, since selectors do not paginate.
+    /// </summary>
+    Task<IReadOnlyList<Venue>> SearchAsync(string? term, int limit, CancellationToken cancellationToken);
 }
