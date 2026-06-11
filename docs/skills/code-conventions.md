@@ -38,3 +38,7 @@ dotnet format --verify-no-changes
 En el backend se siguen las convenciones estándar de .NET. Los tipos y los métodos utilizan `PascalCase`, las variables locales `camelCase`, los campos privados `_camelCase` y las interfaces se prefijan con la letra `I`.
 
 En el frontend se siguen las convenciones estándar de Angular y TypeScript. Las clases y los componentes utilizan `PascalCase`, las variables y los métodos `camelCase`, y los nombres de archivo y los selectores `kebab-case`.
+
+## Gestor de paquetes del frontend
+
+El gestor de paquetes del frontend es **pnpm**. No se usa npm. Esta regla abarca la instalación de dependencias, la ejecución de scripts y la generación del proyecto, y se refleja también en el Dockerfile del frontend y en el pipeline de integración continua, que utilizan pnpm. pnpm se habilita mediante corepack, que viene incluido con Node, de modo que no es necesario instalar nada con npm.
