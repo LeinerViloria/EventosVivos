@@ -10,6 +10,7 @@ Las decisiones estructurales del sistema se documentan aparte, en [`ARQUITECTURA
 
 | Skill | Descripción |
 |-------|-------------|
+| [development-workflow](./development-workflow.md) | Trabajo por ramas, avance secuencial e integración mediante pull request. |
 | [code-conventions](./code-conventions.md) | Idioma del código, formato automático y convenciones de nombres. |
 | [tdd](./tdd.md) | Desarrollo guiado por pruebas y estrategia de testing por capa. |
 | [error-handling](./error-handling.md) | Contrato de códigos de error compartido entre backend y frontend. |
