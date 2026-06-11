@@ -14,6 +14,7 @@
       [value]="title()"
       (input)="onTitleInput($any($event.target).value)"
       [placeholder]="'labels.events.search' | transloco"
+      [attr.aria-label]="'labels.events.search' | transloco"
     />
     <p-select
       styleClass="w-full"
@@ -24,6 +25,7 @@
       (ngModelChange)="onFilter(type, $event)"
       [showClear]="true"
       [placeholder]="'labels.events.filter.type' | transloco"
+      [ariaLabel]="'labels.events.filter.type' | transloco"
     />
     <p-select
       styleClass="w-full"
@@ -34,6 +36,7 @@
       (ngModelChange)="onFilter(status, $event)"
       [showClear]="true"
       [placeholder]="'labels.events.filter.status' | transloco"
+      [ariaLabel]="'labels.events.filter.status' | transloco"
     />
     <p-select
       styleClass="w-full"
@@ -44,6 +47,7 @@
       (ngModelChange)="onFilter(venueId, $event)"
       [showClear]="true"
       [placeholder]="'labels.events.filter.venue' | transloco"
+      [ariaLabel]="'labels.events.filter.venue' | transloco"
     />
     <p-datepicker
       styleClass="w-full"
@@ -53,6 +57,7 @@
       [ngModel]="dateRange()"
       (ngModelChange)="onFilter(dateRange, $event)"
       [placeholder]="'labels.events.filter.dateRange' | transloco"
+      [ariaLabel]="'labels.events.filter.dateRange' | transloco"
     />
     <p-button
       [label]="'labels.events.clear' | transloco"
@@ -78,14 +83,14 @@
   >
     <ng-template pTemplate="header">
       <tr>
-        <th>{{ 'labels.events.column.title' | transloco }}</th>
-        <th>{{ 'labels.events.column.venue' | transloco }}</th>
-        <th>{{ 'labels.events.column.start' | transloco }}</th>
-        <th>{{ 'labels.events.column.end' | transloco }}</th>
-        <th>{{ 'labels.events.column.type' | transloco }}</th>
-        <th>{{ 'labels.events.column.status' | transloco }}</th>
-        <th>{{ 'labels.events.column.capacity' | transloco }}</th>
-        <th>{{ 'labels.events.column.price' | transloco }}</th>
+        <th scope="col">{{ 'labels.events.column.title' | transloco }}</th>
+        <th scope="col">{{ 'labels.events.column.venue' | transloco }}</th>
+        <th scope="col">{{ 'labels.events.column.start' | transloco }}</th>
+        <th scope="col">{{ 'labels.events.column.end' | transloco }}</th>
+        <th scope="col">{{ 'labels.events.column.type' | transloco }}</th>
+        <th scope="col">{{ 'labels.events.column.status' | transloco }}</th>
+        <th scope="col">{{ 'labels.events.column.capacity' | transloco }}</th>
+        <th scope="col">{{ 'labels.events.column.price' | transloco }}</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-item>

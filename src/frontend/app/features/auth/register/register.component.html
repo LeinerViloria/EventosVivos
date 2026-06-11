@@ -11,25 +11,21 @@
     </header>
 
     <p-fluid class="flex flex-col gap-5">
-      <div class="flex flex-col gap-1.5">
-        <label for="name" class="font-medium">
-          {{ 'labels.auth.name' | transloco }} <span class="text-red-500">*</span>
-        </label>
+      <app-field
+        for="name"
+        [label]="'labels.auth.name' | transloco"
+        [showError]="showError('name')"
+        [errorText]="'errors.AUTH_NAME_REQUIRED' | transloco"
+      >
         <input id="name" pInputText formControlName="name" [invalid]="showError('name')" />
-        @if (showError('name')) {
-          <p-message
-            severity="error"
-            variant="simple"
-            size="small"
-            [text]="'errors.AUTH_NAME_REQUIRED' | transloco"
-          />
-        }
-      </div>
+      </app-field>
 
-      <div class="flex flex-col gap-1.5">
-        <label for="email" class="font-medium">
-          {{ 'labels.auth.email' | transloco }} <span class="text-red-500">*</span>
-        </label>
+      <app-field
+        for="email"
+        [label]="'labels.auth.email' | transloco"
+        [showError]="showError('email')"
+        [errorText]="'errors.AUTH_EMAIL_INVALID' | transloco"
+      >
         <input
           id="email"
           pInputText
@@ -37,20 +33,14 @@
           formControlName="email"
           [invalid]="showError('email')"
         />
-        @if (showError('email')) {
-          <p-message
-            severity="error"
-            variant="simple"
-            size="small"
-            [text]="'errors.AUTH_EMAIL_INVALID' | transloco"
-          />
-        }
-      </div>
+      </app-field>
 
-      <div class="flex flex-col gap-1.5">
-        <label for="password" class="font-medium">
-          {{ 'labels.auth.password' | transloco }} <span class="text-red-500">*</span>
-        </label>
+      <app-field
+        for="password"
+        [label]="'labels.auth.password' | transloco"
+        [showError]="showError('password')"
+        [errorText]="'errors.AUTH_PASSWORD_TOO_SHORT' | transloco"
+      >
         <p-password
           inputId="password"
           formControlName="password"
@@ -58,15 +48,7 @@
           [toggleMask]="true"
           [invalid]="showError('password')"
         />
-        @if (showError('password')) {
-          <p-message
-            severity="error"
-            variant="simple"
-            size="small"
-            [text]="'errors.AUTH_PASSWORD_TOO_SHORT' | transloco"
-          />
-        }
-      </div>
+      </app-field>
     </p-fluid>
 
     <p-button

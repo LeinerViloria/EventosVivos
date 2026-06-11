@@ -6,13 +6,13 @@ import { email, minLength, required } from '@angular/forms/signals';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
-import { MessageModule } from 'primeng/message';
 import { ToastModule } from 'primeng/toast';
 import { FluidModule } from 'primeng/fluid';
 import { MessageService } from 'primeng/api';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '@core/auth/auth-store';
+import { FieldComponent } from '@shared/components/field/field.component';
 import { AppError } from '@shared/models/app-error';
 
 @Component({
@@ -23,10 +23,10 @@ import { AppError } from '@shared/models/app-error';
     ButtonModule,
     InputTextModule,
     PasswordModule,
-    MessageModule,
     FluidModule,
     ToastModule,
     TranslocoModule,
+    FieldComponent,
   ],
   providers: [MessageService],
   templateUrl: './register.component.html',
