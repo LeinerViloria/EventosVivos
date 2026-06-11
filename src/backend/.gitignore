@@ -482,3 +482,8 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Environment files (secrets) - keep only .env.example tracked
+.env
+.env.*
+!.env.example

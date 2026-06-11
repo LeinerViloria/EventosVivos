@@ -25,6 +25,11 @@ Núcleo de un sistema de reservas de eventos. Monorepo: `src/backend` (.NET 10) 
 - Validación: **FluentValidation** para la entrada; el dominio para las invariantes RN01–RN07.
 - Mensajería: **RabbitMQ** como bus oficial + patrón **Outbox**. Tiempo real con **SSE** (token de identidad por query string).
 
+### Configuración y secretos
+- Secretos en un **`.env` por proyecto** (backend y frontend), **ignorado por git**; solo se versiona el `.env.example`. Nunca commitear secretos reales.
+- El `.env` del backend tiene las credenciales de PostgreSQL, Redis y RabbitMQ y los secretos (clave JWT). El `.env` del frontend solo lleva configuración **no sensible** (URL de la API), porque un frontend no puede guardar secretos.
+- docker-compose inyecta los `.env` con `env_file`.
+
 ### Datos
 - **La base de datos resuelve** los cálculos, procesos, búsquedas y la paginación. No traer colecciones a memoria para procesarlas.
 - **Sin SQL puro**: solo LINQ sobre EF Core (method o query syntax).
