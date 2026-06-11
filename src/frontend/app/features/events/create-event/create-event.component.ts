@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { SignalFormControl } from '@angular/forms/signals/compat';
 import { maxLength, minLength, required } from '@angular/forms/signals';
@@ -9,6 +10,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { MessageModule } from 'primeng/message';
+import { FluidModule } from 'primeng/fluid';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -28,6 +30,7 @@ import { CreateEventRequest } from '@shared/models/event';
     SelectModule,
     DatePickerModule,
     MessageModule,
+    FluidModule,
     ToastModule,
     TranslocoModule,
   ],
@@ -38,6 +41,7 @@ export class CreateEventComponent {
   private readonly store = inject(EventsStore);
   private readonly messages = inject(MessageService);
   private readonly transloco = inject(TranslocoService);
+  private readonly router = inject(Router);
 
   protected readonly venues = this.store.venues;
   protected readonly typeOptions = [
@@ -67,6 +71,16 @@ export class CreateEventComponent {
     price: new SignalFormControl<number | null>(null, (path) => required(path)),
     eventType: new SignalFormControl<EventType | null>(null, (path) => required(path)),
   });
+
+  /** Whether a field's error should be revealed (once touched or after a submit attempt). */
+  protected showError(field: string): boolean {
+    const control = this.form.get(field);
+    return !!control && control.invalid && (control.touched || this.submitted());
+  }
+
+  protected cancel(): void {
+    this.router.navigate(['/']);
+  }
 
   protected submit(): void {
     this.submitted.set(true);
@@ -101,10 +115,23 @@ export class CreateEventComponent {
       },
       error: (error: AppError) => {
         this.submitting.set(false);
-        this.messages.add({
-          severity: 'error',
-          detail: this.transloco.translate(`errors.${error.errorCode}`, error.params ?? undefined),
-        });
+
+        // A validation failure (422) carries one entry per field in `validationErrors`;
+        // any other failure carries a single top-level `errorCode`. Either way the backend
+        // only sends codes, and i18n turns each code (with its params) into the shown text.
+        const codes = error.validationErrors?.length
+          ? error.validationErrors.map((fieldError) => ({
+              code: fieldError.errorCode,
+              params: fieldError.params,
+            }))
+          : [{ code: error.errorCode, params: error.params }];
+
+        for (const { code, params } of codes) {
+          this.messages.add({
+            severity: 'error',
+            detail: this.transloco.translate(`errors.${code}`, params ?? undefined),
+          });
+        }
       },
     });
   }

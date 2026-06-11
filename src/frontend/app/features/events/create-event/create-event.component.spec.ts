@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/angular';
+import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import { TranslocoTestingModule } from '@jsverse/transloco';
@@ -13,7 +14,9 @@ import { VenueSearchItem } from '@shared/models/venue';
 const esCO = {
   labels: {
     'nav.createEvent': 'Crear evento',
+    'event.subtitle': 'Completa los datos del nuevo evento.',
     'event.submit': 'Crear evento',
+    'event.cancel': 'Cancelar',
     'event.created': 'Evento creado correctamente.',
   },
   field: {
@@ -25,6 +28,7 @@ const esCO = {
     'event.end': 'Fecha y hora de fin',
     'event.price': 'Precio de entrada',
     'event.type': 'Tipo de evento',
+    'event.priceHint': 'Moneda: COP',
     'event.venuePlaceholder': 'Selecciona un lugar',
     'event.typePlaceholder': 'Selecciona un tipo',
   },
@@ -62,6 +66,7 @@ async function setup() {
     ],
     providers: [
       { provide: EventsStore, useValue: store },
+      provideRouter([]),
       providePrimeNG({ theme: { preset: Aura } }),
     ],
   });
@@ -81,9 +86,9 @@ describe('CreateEventComponent', () => {
   it('renders the form with its main fields and the submit button', async () => {
     await setup();
 
-    expect(screen.getByText('Título')).toBeTruthy();
-    expect(screen.getByText('Lugar')).toBeTruthy();
-    expect(screen.getByText('Tipo de evento')).toBeTruthy();
+    expect(screen.getByText(/Título/)).toBeTruthy();
+    expect(screen.getByText(/Lugar/)).toBeTruthy();
+    expect(screen.getByText(/Tipo de evento/)).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Crear evento' })).toBeTruthy();
   });
 

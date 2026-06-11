@@ -2,9 +2,21 @@
   "labels": {
     "app.brand": "Eventos vivos",
     "app.title": "Sistema de reservas de eventos",
-    "nav.events": "Eventos",
+    "nav.home": "Inicio",
     "nav.createEvent": "Crear evento",
+    "panel.title": "Panel",
+    "panel.subtitle": "Gestiona los eventos de tu organización",
+    "dashlet.createEvent.title": "Crear evento",
+    "dashlet.createEvent.desc": "Registra un nuevo evento",
+    "dashlet.createEvent.action": "Ir al formulario",
+    "dashlet.events.title": "Eventos",
+    "dashlet.events.desc": "Consulta y administra los eventos",
+    "dashlet.reports.title": "Reportes",
+    "dashlet.reports.desc": "Reportes de ocupación",
+    "badge.comingSoon": "Próximamente",
+    "event.subtitle": "Completa los datos del nuevo evento. Los campos marcados con * son obligatorios.",
     "event.submit": "Crear evento",
+    "event.cancel": "Cancelar",
     "event.created": "Evento creado correctamente."
   },
   "field": {
@@ -15,6 +27,7 @@
     "event.start": "Fecha y hora de inicio",
     "event.end": "Fecha y hora de fin",
     "event.price": "Precio de entrada",
+    "event.priceHint": "Moneda: COP",
     "event.type": "Tipo de evento",
     "event.venuePlaceholder": "Selecciona un lugar",
     "event.typePlaceholder": "Selecciona un tipo"

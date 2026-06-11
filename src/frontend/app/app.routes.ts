@@ -1,7 +1,10 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'events/create', pathMatch: 'full' },
+  {
+    path: '',
+    loadComponent: () => import('@features/home/home.component').then((m) => m.HomeComponent),
+  },
   {
     path: 'events/create',
     loadComponent: () =>
@@ -9,4 +12,5 @@ export const routes: Routes = [
         (m) => m.CreateEventComponent,
       ),
   },
+  { path: '**', redirectTo: '' },
 ];
