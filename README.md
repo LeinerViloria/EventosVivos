@@ -90,6 +90,19 @@ Las credenciales de PostgreSQL, Redis y RabbitMQ se toman de `src/backend/.env` 
 
 ---
 
+## Integración continua
+
+En cada pull request hacia `main`, GitHub Actions ejecuta **en paralelo** dos flujos independientes, uno para el backend y otro para el frontend. Cada uno compila, ejecuta las pruebas con cobertura y envía el análisis a SonarQube Cloud (SonarCloud). El pull request queda en verde, con todas las verificaciones aprobadas, únicamente cuando ambos flujos terminan correctamente.
+
+Para que el análisis de SonarCloud funcione, el repositorio debe tener configurado lo siguiente en GitHub (Settings):
+
+- Secreto `SONAR_TOKEN`: token de SonarCloud.
+- Variable `SONAR_ORGANIZATION`: organización en SonarCloud.
+- Variable `SONAR_PROJECT_KEY_BACKEND`: project key del proyecto backend.
+- Variable `SONAR_PROJECT_KEY_FRONTEND`: project key del proyecto frontend.
+
+Además, en SonarCloud se deben crear la organización y dos proyectos, uno para el backend y otro para el frontend, vinculados a este repositorio.
+
 ## Documentación
 
 - [`docs/ENUNCIADO.md`](./docs/ENUNCIADO.md) — enunciado del problema.
