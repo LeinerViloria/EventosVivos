@@ -21,7 +21,7 @@ Al finalizar cada desarrollo se ejecuta el formateador de código. Para que esta
 
 En primer lugar, un archivo `.editorconfig` ubicado en la raíz del repositorio actúa como fuente única de verdad de las reglas de estilo y formato. Tanto la herramienta `dotnet format` como el editor de código y el linter del frontend obtienen sus reglas de ese archivo.
 
-En segundo lugar, la integración continua incluye una verificación que falla la construcción cuando el código no está correctamente formateado. En el backend esa verificación se realiza con el comando `dotnet format --verify-no-changes`, y en el frontend con el linter y el formateador equivalentes de Angular. De esta manera, la regla de mantener el código formateado se garantiza de forma objetiva, sin importar quién realice el aporte.
+En segundo lugar, la integración continua incluye una verificación que falla la construcción cuando el código no está correctamente formateado. En el backend esa verificación se realiza con el comando `dotnet format --verify-no-changes`, y en el frontend con Prettier mediante `prettier --check`. De esta manera, la regla de mantener el código formateado se garantiza de forma objetiva, sin importar quién realice el aporte.
 
 En tercer lugar, y de manera opcional, un hook de pre-commit puede ejecutar el formateo antes de cada commit para detectar cualquier desviación lo antes posible.
 
@@ -31,6 +31,18 @@ dotnet format
 
 # Verificar el formato sin modificar archivos (lo que ejecuta la integración continua)
 dotnet format --verify-no-changes
+```
+
+En el frontend, el formateo se gestiona con Prettier:
+
+```bash
+# Formatear el código del frontend
+pnpm -C src/frontend exec prettier --write .
+```
+
+```bash
+# Verificar el formato (lo que ejecuta la integración continua)
+pnpm -C src/frontend exec prettier --check .
 ```
 
 ## Convenciones de nombres
