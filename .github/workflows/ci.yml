@@ -1,10 +1,8 @@
 # Integración continua: backend y frontend se analizan en paralelo (jobs independientes).
 # El PR queda en verde ("All checks passed") solo cuando ambos jobs terminan correctamente.
 #
-# Configuración requerida en el repositorio de GitHub (Settings):
-#   Secret:
+# Configuración requerida en el repositorio de GitHub (Settings → Secrets and variables → Actions → Secrets):
 #     SONAR_TOKEN                 Token de SonarCloud (SonarQube Cloud).
-#   Variables:
 #     SONAR_ORGANIZATION          Organización en SonarCloud.
 #     SONAR_PROJECT_KEY_BACKEND   Project key del proyecto backend en SonarCloud.
 #     SONAR_PROJECT_KEY_FRONTEND  Project key del proyecto frontend en SonarCloud.
@@ -51,8 +49,8 @@ jobs:
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
           dotnet sonarscanner begin \
-            /k:"${{ vars.SONAR_PROJECT_KEY_BACKEND }}" \
-            /o:"${{ vars.SONAR_ORGANIZATION }}" \
+            /k:"${{ secrets.SONAR_PROJECT_KEY_BACKEND }}" \
+            /o:"${{ secrets.SONAR_ORGANIZATION }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
@@ -97,8 +95,8 @@ jobs:
         with:
           projectBaseDir: src/frontend
           args: >
-            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
-            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY_FRONTEND }}
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_FRONTEND }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
