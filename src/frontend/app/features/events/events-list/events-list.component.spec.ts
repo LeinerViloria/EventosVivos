@@ -10,6 +10,7 @@ import { TranslocoTestingModule } from '@jsverse/transloco';
 
 import { EventsListComponent } from './events-list.component';
 import { EventsStore } from '@features/events/events-store';
+import { AuthStore } from '@core/auth/auth-store';
 import { EventType } from '@shared/enums/event-type';
 import { EventStatus } from '@shared/enums/event-status';
 
@@ -91,6 +92,7 @@ async function setup() {
     ],
     providers: [
       { provide: EventsStore, useValue: { venues: { value: () => [] } } },
+      { provide: AuthStore, useValue: { identityToken: () => null } },
       provideRouter([]),
       provideHttpClient(),
       provideHttpClientTesting(),
