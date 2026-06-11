@@ -19,4 +19,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 EXPOSE 8080
+# Ejecutar como usuario no root (definido por la imagen de .NET) por seguridad.
+USER $APP_UID
 ENTRYPOINT ["dotnet", "EventosVivos.Api.dll"]
