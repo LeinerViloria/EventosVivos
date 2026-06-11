@@ -1,4 +1,5 @@
 using EventosVivos.Domain.Events;
+using EventosVivos.Domain.Users;
 using EventosVivos.Domain.Venues;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +11,8 @@ public sealed class EventosVivosDbContext(DbContextOptions<EventosVivosDbContext
     public DbSet<Venue> Venues => Set<Venue>();
 
     public DbSet<Event> Events => Set<Event>();
+
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

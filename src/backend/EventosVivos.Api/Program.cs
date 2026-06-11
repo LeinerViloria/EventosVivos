@@ -19,6 +19,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 var app = builder.Build();
 
 await app.Services.ApplyMigrationsAsync();
+await AuthDataSeeder.SeedAsync(app.Services);
 
 app.UseExceptionHandler();
 
