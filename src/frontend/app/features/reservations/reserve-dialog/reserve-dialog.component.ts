@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { SignalFormControl } from '@angular/forms/signals/compat';
 import { email, required } from '@angular/forms/signals';
@@ -56,17 +56,20 @@ export class ReserveDialogComponent {
   });
 
   constructor() {
-    // When the dialog opens, default the buyer to the signed-in user (still editable, so the
-    // user can reserve for someone else).
+    // When the dialog opens, default the buyer to the signed-in user (still editable, so the user
+    // can reserve for someone else). The prefill runs untracked and depends only on the dialog
+    // opening, so it never re-runs while the user types and overwrites their edits.
     effect(() => {
       if (this.event() === null) {
         return;
       }
 
-      const user = this.auth.user();
-      if (user) {
-        this.form.patchValue({ buyerName: user.name, buyerEmail: user.email });
-      }
+      untracked(() => {
+        const user = this.auth.user();
+        if (user) {
+          this.form.patchValue({ buyerName: user.name, buyerEmail: user.email });
+        }
+      });
     });
   }
 
