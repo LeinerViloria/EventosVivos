@@ -109,6 +109,23 @@ describe('ReserveDialogComponent', () => {
     expect(component.form.getRawValue()['buyerEmail']).toBe('admin@eventosvivos.dev');
   });
 
+  it('keeps the prefilled buyer fields editable', async () => {
+    const user: AuthUser = {
+      name: 'Administrador',
+      email: 'admin@eventosvivos.dev',
+      role: 'Admin',
+      permissions: [],
+    };
+
+    const { view, component } = await setup(undefined, user);
+
+    // Editing must not be reverted by the prefill effect.
+    const nameInput = view.container.querySelector('#buyerName') as HTMLInputElement;
+    fireEvent.input(nameInput, { target: { value: 'Otro Comprador' } });
+
+    expect(component.form.getRawValue()['buyerName']).toBe('Otro Comprador');
+  });
+
   it('shows the error when the reservation fails', async () => {
     const createReservation = vi.fn().mockReturnValue(
       throwError(() => ({
