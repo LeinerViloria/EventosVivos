@@ -1,18 +1,28 @@
-# Integración continua: backend y frontend se analizan en paralelo (jobs independientes).
-# El PR queda en verde ("All checks passed") solo cuando ambos jobs terminan correctamente.
+# Integración y despliegue continuos.
 #
-# Configuración requerida en el repositorio de GitHub (Settings → Secrets and variables → Actions → Secrets):
+# CI: backend y frontend se analizan en paralelo (jobs independientes). En un pull request solo
+# corren estos dos jobs; los pasos de publicación se omiten.
+#
+# CD: al hacer push a main, si AMBOS jobs de CI terminan correctamente, se construyen y publican las
+# imágenes Docker de backend y frontend en GitHub Packages (ghcr.io). El job de publicación declara
+# `needs: [backend, frontend]`, así que si cualquiera de los dos falla, la publicación se omite y el
+# despliegue no continúa.
+#
+# Configuración requerida en el repositorio (Settings → Secrets and variables → Actions → Secrets):
 #     SONAR_TOKEN                 Token de SonarCloud (SonarQube Cloud).
 #     SONAR_ORGANIZATION          Organización en SonarCloud.
 #     SONAR_PROJECT_KEY_BACKEND   Project key del proyecto backend en SonarCloud.
 #     SONAR_PROJECT_KEY_FRONTEND  Project key del proyecto frontend en SonarCloud.
-name: CI
+# La publicación usa el GITHUB_TOKEN integrado (no requiere secreto adicional). Verifica que en
+# Settings → Actions → General → Workflow permissions esté habilitado "Read and write permissions".
+name: CI/CD
 
 on:
   pull_request:
     branches: [main]
   push:
-    branches: [main]
+    # despliegue_continuo se incluye temporalmente para probar el CD sin integrar a main.
+    branches: [main, despliegue_continuo]
 
 jobs:
   backend:
@@ -104,3 +114,52 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
+
+  # CD: solo en push a main y solo si backend Y frontend pasaron (needs). En PR este job no corre.
+  publish-images:
+    name: Publish images (GHCR)
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/despliegue_continuo')
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Namespace en minúscula (requisito de GHCR)
+        id: ns
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Build & push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: src/backend
+          file: src/backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-backend:latest
+            ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-backend:${{ github.sha }}
+
+      - name: Build & push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: src/frontend
+          file: src/frontend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-frontend:latest
+            ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-frontend:${{ github.sha }}
