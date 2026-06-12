@@ -34,5 +34,13 @@ export const routes: Routes = [
         (m) => m.CreateEventComponent,
       ),
   },
+  {
+    path: 'reservations',
+    canActivate: [authGuard, permissionGuard('reservations.read')],
+    loadComponent: () =>
+      import('@features/reservations/reservations-list/reservations-list.component').then(
+        (m) => m.ReservationsListComponent,
+      ),
+  },
   { path: '**', redirectTo: '' },
 ];

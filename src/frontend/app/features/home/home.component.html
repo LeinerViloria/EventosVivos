@@ -39,6 +39,26 @@
       </span>
     </a>
 
+    <!-- Reservas (admin only) -->
+    @if (auth.hasPermission('reservations.read')) {
+      <a
+        routerLink="/reservations"
+        class="group flex flex-col rounded-xl border border-surface-700 bg-surface-900 p-6 no-underline text-surface-0 transition hover:border-primary"
+      >
+        <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white">
+          <i class="pi pi-ticket text-xl"></i>
+        </span>
+        <h2 class="mt-4 text-xl font-semibold">
+          {{ 'labels.dashlet.reservations.title' | transloco }}
+        </h2>
+        <p class="mt-1 text-surface-400">{{ 'labels.dashlet.reservations.desc' | transloco }}</p>
+        <span class="mt-4 inline-flex items-center gap-1 font-medium text-primary">
+          {{ 'labels.dashlet.reservations.action' | transloco }}
+          <i class="pi pi-arrow-right text-sm"></i>
+        </span>
+      </a>
+    }
+
     <!-- Reportes (coming soon) -->
     <div
       class="relative flex flex-col rounded-xl border border-surface-700 bg-surface-900 p-6 opacity-60"

@@ -25,6 +25,9 @@
     "dashlet.events.title": "Eventos",
     "dashlet.events.desc": "Consulta y administra los eventos",
     "dashlet.events.action": "Ver eventos",
+    "dashlet.reservations.title": "Reservas",
+    "dashlet.reservations.desc": "Gestiona y confirma las reservas",
+    "dashlet.reservations.action": "Ver reservas",
     "dashlet.reports.title": "Reportes",
     "dashlet.reports.desc": "Reportes de ocupación",
     "badge.comingSoon": "Próximamente",
@@ -57,7 +60,20 @@
     "reserve.buyerEmail": "Correo del comprador",
     "reserve.quantity": "Cantidad",
     "reserve.submit": "Reservar",
-    "reserve.success": "Reserva creada. Tienes unos minutos para pagar."
+    "reserve.success": "Reserva creada. Tienes unos minutos para pagar.",
+    "reservations.title": "Reservas",
+    "reservations.subtitle": "Gestiona y confirma las reservas de los eventos.",
+    "reservations.filter.status": "Estado",
+    "reservations.empty": "No hay reservas que coincidan.",
+    "reservations.column.event": "Evento",
+    "reservations.column.buyer": "Comprador",
+    "reservations.column.quantity": "Cantidad",
+    "reservations.column.status": "Estado",
+    "reservations.column.code": "Código",
+    "reservations.column.created": "Creada",
+    "reservations.column.actions": "Acciones",
+    "reservations.confirm.button": "Confirmar pago",
+    "reservations.confirm.success": "Pago confirmado. Código: {{code}}"
   },
   "field": {
     "event.title": "Título",
@@ -74,7 +90,14 @@
   },
   "enums": {
     "eventType": { "1": "Conferencia", "2": "Taller", "3": "Concierto" },
-    "eventStatus": { "1": "Activo", "2": "Cancelado", "3": "Completado" }
+    "eventStatus": { "1": "Activo", "2": "Cancelado", "3": "Completado" },
+    "reservationStatus": {
+      "1": "Pendiente de pago",
+      "2": "Confirmada",
+      "3": "Cancelada",
+      "4": "Perdida",
+      "5": "Expirada"
+    }
   },
   "errors": {
     "required": "Este campo es obligatorio.",

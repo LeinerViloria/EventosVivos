@@ -17,4 +17,12 @@ public static class ReservationErrors
     /// <summary>Not enough tickets are available for the requested quantity.</summary>
     public static Error NoTicketsAvailable(int available) =>
         new("RESERVATION_NO_TICKETS_AVAILABLE", new Dictionary<string, object?> { ["available"] = available });
+
+    public static readonly Error NotFound = new("RESERVATION_NOT_FOUND");
+
+    /// <summary>RF-04: the reservation is already confirmed.</summary>
+    public static readonly Error AlreadyConfirmed = new("RESERVATION_ALREADY_CONFIRMED");
+
+    /// <summary>RF-04: the reservation is not pending payment (cancelled, expired or lost).</summary>
+    public static readonly Error NotPending = new("RESERVATION_NOT_PENDING");
 }
