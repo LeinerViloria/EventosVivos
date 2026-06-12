@@ -17,6 +17,6 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.PasswordHash).HasMaxLength(200).IsRequired();
         builder.Property(u => u.Name).HasMaxLength(120).IsRequired();
-        builder.Property(u => u.Role).HasColumnType("smallint");
+        builder.Property(u => u.Role).HasColumnType(ColumnTypes.SmallInt);
     }
 }
