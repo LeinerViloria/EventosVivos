@@ -1,5 +1,6 @@
 using EventosVivos.Application.Abstractions;
 using EventosVivos.Application.Features.Events.ListEvents;
+using EventosVivos.Application.Features.Reservations.ListReservations;
 using EventosVivos.Domain.Events;
 using EventosVivos.Domain.Reservations;
 using EventosVivos.Domain.Users;
@@ -30,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<IEventListReader, EventListReader>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
+        services.AddScoped<IReservationListReader, ReservationListReader>();
+        services.AddSingleton<IReservationCodeGenerator, ReservationCodeGenerator>();
         services.AddSingleton<IClock, SystemClock>();
 
         services.AddSingleton(new ReservationOptions

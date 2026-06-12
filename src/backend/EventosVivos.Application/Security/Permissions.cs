@@ -8,6 +8,7 @@ public static class Permissions
 {
     public const string EventsRead = "events.read";
     public const string EventsCreate = "events.create";
+    public const string ReservationsRead = "reservations.read";
     public const string ReservationsCreate = "reservations.create";
     public const string ReservationsConfirm = "reservations.confirm";
     public const string ReservationsCancel = "reservations.cancel";
@@ -18,6 +19,7 @@ public static class Permissions
     [
         EventsRead,
         EventsCreate,
+        ReservationsRead,
         ReservationsCreate,
         ReservationsConfirm,
         ReservationsCancel,

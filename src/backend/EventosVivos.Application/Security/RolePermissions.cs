@@ -15,6 +15,7 @@ public static class RolePermissions
             [
                 Permissions.EventsRead,
                 Permissions.EventsCreate,
+                Permissions.ReservationsRead,
                 Permissions.ReservationsCreate,
                 Permissions.ReservationsConfirm,
                 Permissions.ReservationsCancel,

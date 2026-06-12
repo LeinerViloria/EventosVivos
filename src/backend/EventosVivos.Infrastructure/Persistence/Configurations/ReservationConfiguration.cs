@@ -19,6 +19,11 @@ internal sealed class ReservationConfiguration : IEntityTypeConfiguration<Reserv
         builder.Property(r => r.Status).HasColumnType("smallint");
         builder.Property(r => r.CreatedAtUtc).HasColumnType("timestamp with time zone");
         builder.Property(r => r.ExpiresAtUtc).HasColumnType("timestamp with time zone");
+        builder.Property(r => r.ConfirmedAtUtc).HasColumnType("timestamp with time zone");
+        builder.Property(r => r.ConfirmationCode).HasMaxLength(20);
+
+        // Unique among confirmed reservations; Postgres allows multiple NULLs (pending ones).
+        builder.HasIndex(r => r.ConfirmationCode).IsUnique();
 
         builder
             .HasOne<Event>()

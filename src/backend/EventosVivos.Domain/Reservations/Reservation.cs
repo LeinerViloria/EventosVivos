@@ -1,3 +1,5 @@
+using EventosVivos.Domain.Common;
+
 namespace EventosVivos.Domain.Reservations;
 
 /// <summary>
@@ -46,6 +48,10 @@ public sealed class Reservation
 
     public DateTime ExpiresAtUtc { get; private set; }
 
+    public string? ConfirmationCode { get; private set; }
+
+    public DateTime? ConfirmedAtUtc { get; private set; }
+
     /// <summary>Expires a pending reservation so its tickets are released. No-op otherwise.</summary>
     public void Expire()
     {
@@ -53,6 +59,28 @@ public sealed class Reservation
         {
             Status = ReservationStatus.Expired;
         }
+    }
+
+    /// <summary>
+    /// Confirms a pending reservation (RF-04), stamping the unique code and the confirmation time.
+    /// Rejects a reservation that is already confirmed or that is no longer pending.
+    /// </summary>
+    public Result Confirm(string confirmationCode, DateTimeOffset now)
+    {
+        if (Status == ReservationStatus.Confirmed)
+        {
+            return Result.Failure(ReservationErrors.AlreadyConfirmed);
+        }
+
+        if (Status != ReservationStatus.PendingPayment)
+        {
+            return Result.Failure(ReservationErrors.NotPending);
+        }
+
+        Status = ReservationStatus.Confirmed;
+        ConfirmationCode = confirmationCode;
+        ConfirmedAtUtc = now.UtcDateTime;
+        return Result.Success();
     }
 
     public static Reservation CreatePending(

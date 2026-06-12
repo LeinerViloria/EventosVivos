@@ -12,7 +12,8 @@ public static class ResultExtensions
     {
         var statusCode = error.Code switch
         {
-            "VENUE_NOT_FOUND" or "EVENT_NOT_FOUND" => StatusCodes.Status404NotFound,
+            "VENUE_NOT_FOUND" or "EVENT_NOT_FOUND" or "RESERVATION_NOT_FOUND" =>
+                StatusCodes.Status404NotFound,
             "AUTH_INVALID_CREDENTIALS" => StatusCodes.Status401Unauthorized,
             _ => StatusCodes.Status409Conflict,
         };
