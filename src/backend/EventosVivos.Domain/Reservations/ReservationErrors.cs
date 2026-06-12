@@ -25,4 +25,7 @@ public static class ReservationErrors
 
     /// <summary>RF-04: the reservation is not pending payment (cancelled, expired or lost).</summary>
     public static readonly Error NotPending = new("RESERVATION_NOT_PENDING");
+
+    /// <summary>RF-05: the reservation is in a terminal state (cancelled, lost or expired) and cannot be cancelled.</summary>
+    public static readonly Error NotCancellable = new("RESERVATION_NOT_CANCELLABLE");
 }

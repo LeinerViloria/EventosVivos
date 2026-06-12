@@ -52,6 +52,8 @@ public sealed class Reservation
 
     public DateTime? ConfirmedAtUtc { get; private set; }
 
+    public DateTime? CancelledAtUtc { get; private set; }
+
     /// <summary>Expires a pending reservation so its tickets are released. No-op otherwise.</summary>
     public void Expire()
     {
@@ -82,6 +84,43 @@ public sealed class Reservation
         ConfirmedAtUtc = now.UtcDateTime;
         return Result.Success();
     }
+
+    /// <summary>
+    /// Cancels the reservation (RF-05). A pending reservation, or a confirmed one cancelled at least
+    /// 48h before the event, becomes <see cref="ReservationStatus.Cancelled"/> and its tickets are
+    /// released by the caller. A confirmed reservation cancelled within 48h of the event becomes
+    /// <see cref="ReservationStatus.Lost"/> (RN07): the tickets are forfeited, not released.
+    /// Terminal states (cancelled, lost, expired) are rejected.
+    /// </summary>
+    /// <remarks>
+    /// RF-05 is internally contradictory: it states that a confirmed reservation transitions to
+    /// cancelled, yet also that an "already paid/confirmed" reservation must be rejected. We follow
+    /// the reading that keeps the requirement most consistent — a confirmed reservation IS cancellable
+    /// (honoring the explicit confirmed→cancelled transition and keeping RN07 meaningful) — and read
+    /// the rejection clause as a guard against re-cancelling terminal reservations.
+    /// </remarks>
+    public Result Cancel(DateTime eventStartUtc, DateTimeOffset now)
+    {
+        switch (Status)
+        {
+            case ReservationStatus.PendingPayment:
+                Status = ReservationStatus.Cancelled;
+                break;
+            case ReservationStatus.Confirmed:
+                Status = eventStartUtc - now.UtcDateTime < TimeSpan.FromHours(48)
+                    ? ReservationStatus.Lost
+                    : ReservationStatus.Cancelled;
+                break;
+            default:
+                return Result.Failure(ReservationErrors.NotCancellable);
+        }
+
+        CancelledAtUtc = now.UtcDateTime;
+        return Result.Success();
+    }
+
+    /// <summary>True when cancellation released the tickets back for sale (cancelled, not lost).</summary>
+    public bool ReleasedOnCancel => Status == ReservationStatus.Cancelled;
 
     public static Reservation CreatePending(
         Guid eventId,
