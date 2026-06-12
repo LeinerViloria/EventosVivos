@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
+using EventosVivos.Application.Features.Reports.OccupancyReport;
+using EventosVivos.Domain.Events;
 using EventosVivos.Infrastructure.Persistence.Configurations;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EventosVivos.Api.Tests;
 
@@ -92,5 +95,45 @@ public sealed class OccupancyReportTests(EventsApiFactory factory) : IClassFixtu
         var response = await user.GetAsync("/api/v1/reports/occupancy");
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Exports_the_report_as_a_pdf()
+    {
+        var admin = await factory.CreateAdminClientAsync();
+        await CreateEvent(admin, "Pdf Event", day: 12);
+
+        var response = await admin.GetAsync("/api/v1/reports/occupancy/pdf");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/pdf", response.Content.Headers.ContentType!.MediaType);
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        Assert.StartsWith("%PDF", System.Text.Encoding.ASCII.GetString(bytes, 0, 4));
+    }
+
+    [Fact]
+    public async Task A_regular_user_cannot_export_the_pdf()
+    {
+        var user = await factory.CreateUserClientAsync();
+
+        var response = await user.GetAsync("/api/v1/reports/occupancy/pdf");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public void Pdf_generator_renders_a_valid_document_with_rows()
+    {
+        var generator = factory.Services.GetRequiredService<IOccupancyReportPdfGenerator>();
+        var items = new List<OccupancyReportItem>
+        {
+            new(Guid.CreateVersion7(), "Concierto", 100, 30, 60, 40, 1500m, EventStatus.Active),
+            new(Guid.CreateVersion7(), "Taller", 50, 0, 50, 0, 0m, EventStatus.Completed),
+        };
+
+        var pdf = generator.Generate(items);
+
+        Assert.NotEmpty(pdf);
+        Assert.StartsWith("%PDF", System.Text.Encoding.ASCII.GetString(pdf, 0, 4));
     }
 }

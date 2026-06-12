@@ -9,6 +9,7 @@ using EventosVivos.Domain.Venues;
 using EventosVivos.Infrastructure.Messaging;
 using EventosVivos.Infrastructure.Persistence;
 using EventosVivos.Infrastructure.Persistence.Repositories;
+using EventosVivos.Infrastructure.Reports;
 using EventosVivos.Infrastructure.Security;
 using EventosVivos.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IReservationListReader, ReservationListReader>();
         services.AddScoped<IOccupancyReportReader, OccupancyReportReader>();
+        services.AddSingleton<IOccupancyReportPdfGenerator, OccupancyReportPdfGenerator>();
         services.AddSingleton<IReservationCodeGenerator, ReservationCodeGenerator>();
         services.AddSingleton<IClock, SystemClock>();
 

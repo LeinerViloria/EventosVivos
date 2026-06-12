@@ -8,4 +8,7 @@ public interface IOccupancyReportReader
     Task<PagedResult<OccupancyReportItem>> GetAsync(
         OccupancyReportQuery query,
         CancellationToken cancellationToken);
+
+    /// <summary>Every event's occupancy metrics, unpaginated, for the PDF export.</summary>
+    Task<IReadOnlyList<OccupancyReportItem>> GetAllAsync(CancellationToken cancellationToken);
 }

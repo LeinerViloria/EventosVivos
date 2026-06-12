@@ -42,6 +42,9 @@ jobs:
       - name: Install SonarScanner for .NET
         run: dotnet tool install --global dotnet-sonarscanner
 
+      - name: Install QuestPDF native dependencies (SkiaSharp)
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1
+
       - name: Build, test and analyze
         working-directory: src/backend
         env:
