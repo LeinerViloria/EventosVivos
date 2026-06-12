@@ -21,8 +21,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    # despliegue_continuo se incluye temporalmente para probar el CD sin integrar a main.
-    branches: [main, despliegue_continuo]
+    branches: [main]
 
 jobs:
   backend:
@@ -120,15 +119,39 @@ jobs:
     name: Publish images (GHCR)
     needs: [backend, frontend]
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'push' &&
-      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/despliegue_continuo')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
-      contents: read
+      contents: write # crear y empujar el tag de versión (vX.Y.Z)
       packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # necesario para leer los tags de versión existentes
+
+      - name: Compute version (semver, minor autoincrementable)
+        id: ver
+        run: |
+          git fetch --tags --force --quiet
+          latest=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
+          if [ -z "$latest" ]; then
+            # Primera publicación: arranca en 1.0.0.
+            version="1.0.0"
+          else
+            base=${latest#v}
+            major=${base%%.*}
+            rest=${base#*.}
+            minor=${rest%%.*}
+            # Autoincrementa el minor y resetea el patch; para subir MAJOR crea un tag manual (p. ej. v2.0.0).
+            version="${major}.$((minor + 1)).0"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Próxima versión: $version"
+
+      - name: Tag the release in git
+        run: |
+          git tag "v${{ steps.ver.outputs.version }}"
+          git push origin "v${{ steps.ver.outputs.version }}"
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -152,7 +175,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-backend:latest
-            ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-backend:${{ github.sha }}
+            ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-backend:${{ steps.ver.outputs.version }}
 
       - name: Build & push frontend image
         uses: docker/build-push-action@v6
@@ -162,4 +185,4 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-frontend:latest
-            ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-frontend:${{ github.sha }}
+            ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-frontend:${{ steps.ver.outputs.version }}
