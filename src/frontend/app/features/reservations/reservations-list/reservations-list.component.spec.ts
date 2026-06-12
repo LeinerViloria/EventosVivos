@@ -1,15 +1,35 @@
-import { render, screen, fireEvent } from '@testing-library/angular';
+import { render, screen, fireEvent, RenderResult } from '@testing-library/angular';
 import { TestBed } from '@angular/core/testing';
+import { WritableSignal } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import { TranslocoTestingModule } from '@jsverse/transloco';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { ReservationsListComponent } from './reservations-list.component';
 import { ReservationsStore } from '@features/reservations/reservations-store';
+import { ReservationStatus } from '@shared/enums/reservation-status';
+import { ReservationListItem } from '@shared/models/reservation';
+
+interface ReservationsListApi {
+  status: WritableSignal<ReservationStatus | null>;
+  page: WritableSignal<number>;
+  pageSize: WritableSignal<number>;
+  onFilter: (
+    target: WritableSignal<ReservationStatus | null>,
+    value: ReservationStatus | null,
+  ) => void;
+  onLazyLoad: (event: { first?: number; rows?: number }) => void;
+  statusSeverity: (status: ReservationStatus) => string;
+  confirm: (item: ReservationListItem) => void;
+}
+
+function api(view: RenderResult<ReservationsListComponent>): ReservationsListApi {
+  return view.fixture.componentInstance as unknown as ReservationsListApi;
+}
 
 const esCO = {
   labels: {
@@ -105,5 +125,53 @@ describe('ReservationsListComponent', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar pago' }));
 
     expect(confirmPayment).toHaveBeenCalledWith('r1');
+  });
+
+  it('shows an error when confirming fails', async () => {
+    const confirmPayment = vi.fn().mockReturnValue(
+      throwError(() => ({
+        status: 409,
+        errorCode: 'RESERVATION_ALREADY_CONFIRMED',
+        errorKind: 'business',
+        params: null,
+        validationErrors: null,
+      })),
+    );
+    const { view, controller } = await setup(confirmPayment);
+    controller.expectOne((r) => r.url.includes('/reservations')).flush(pageResponse);
+    const component = api(view);
+
+    component.confirm(pageResponse.items[0] as ReservationListItem);
+
+    expect(confirmPayment).toHaveBeenCalledWith('r1');
+  });
+
+  it('updates filter and pagination state', async () => {
+    const { view, controller } = await setup();
+    controller.expectOne((r) => r.url.includes('/reservations')).flush(pageResponse);
+    const component = api(view);
+
+    component.onFilter(component.status, ReservationStatus.Confirmed);
+    expect(component.status()).toBe(ReservationStatus.Confirmed);
+    expect(component.page()).toBe(1);
+
+    component.onLazyLoad({ first: 20, rows: 10 });
+    expect(component.page()).toBe(3);
+    expect(component.pageSize()).toBe(10);
+
+    component.onLazyLoad({ first: 0, rows: 0 });
+    expect(component.pageSize()).toBe(10);
+  });
+
+  it('maps each status to a tag severity', async () => {
+    const { view, controller } = await setup();
+    controller.expectOne((r) => r.url.includes('/reservations')).flush(pageResponse);
+    const component = api(view);
+
+    expect(component.statusSeverity(ReservationStatus.Confirmed)).toBe('success');
+    expect(component.statusSeverity(ReservationStatus.PendingPayment)).toBe('warn');
+    expect(component.statusSeverity(ReservationStatus.Cancelled)).toBe('danger');
+    expect(component.statusSeverity(ReservationStatus.Lost)).toBe('danger');
+    expect(component.statusSeverity(ReservationStatus.Expired)).toBe('secondary');
   });
 });
