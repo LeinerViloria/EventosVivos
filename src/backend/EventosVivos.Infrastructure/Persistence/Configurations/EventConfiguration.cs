@@ -20,8 +20,8 @@ internal sealed class EventConfiguration : IEntityTypeConfiguration<Event>
         builder.Property(e => e.Price).HasColumnType("numeric(10,2)");
 
         // El backend opera y persiste en UTC.
-        builder.Property(e => e.StartUtc).HasColumnType("timestamp with time zone");
-        builder.Property(e => e.EndUtc).HasColumnType("timestamp with time zone");
+        builder.Property(e => e.StartUtc).HasColumnType(ColumnTypes.TimestampWithTimeZone);
+        builder.Property(e => e.EndUtc).HasColumnType(ColumnTypes.TimestampWithTimeZone);
 
         // Opciones cerradas como valor numérico (enum : byte).
         builder.Property(e => e.Type).HasConversion<byte>();

@@ -14,6 +14,8 @@ public sealed partial class ReservationsManagementTests(EventsApiFactory factory
 
     private sealed record ConfirmResponse(string ConfirmationCode);
 
+    private sealed record CancelResponse(int Status);
+
     private sealed record PagedResponse(List<ReservationRow> Items, int Total);
 
     private sealed record ReservationRow(Guid Id, string EventTitle, int Status, string? ConfirmationCode);
@@ -114,5 +116,42 @@ public sealed partial class ReservationsManagementTests(EventsApiFactory factory
         var response = await user.GetAsync("/api/v1/reservations");
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Cancels_a_pending_reservation()
+    {
+        var admin = await factory.CreateAdminClientAsync();
+        var reservationId = await Reserve(admin, await CreateEvent(admin, "Cancelable Event", day: 4));
+
+        var response = await admin.PostAsync($"/api/v1/reservations/{reservationId}/cancel", content: null);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<CancelResponse>();
+        Assert.Equal(3, body!.Status); // ReservationStatus.Cancelled
+    }
+
+    [Fact]
+    public async Task Returns_409_when_already_cancelled()
+    {
+        var admin = await factory.CreateAdminClientAsync();
+        var reservationId = await Reserve(admin, await CreateEvent(admin, "Twice Cancelled", day: 5));
+
+        await admin.PostAsync($"/api/v1/reservations/{reservationId}/cancel", content: null);
+        var second = await admin.PostAsync($"/api/v1/reservations/{reservationId}/cancel", content: null);
+
+        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
+    }
+
+    [Fact]
+    public async Task A_regular_user_can_cancel_a_reservation()
+    {
+        var admin = await factory.CreateAdminClientAsync();
+        var user = await factory.CreateUserClientAsync();
+        var reservationId = await Reserve(user, await CreateEvent(admin, "User Cancelable", day: 6));
+
+        var response = await user.PostAsync($"/api/v1/reservations/{reservationId}/cancel", content: null);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 }

@@ -66,4 +66,69 @@ public class ReservationTests
         Assert.True(result.IsFailure);
         Assert.Equal("RESERVATION_NOT_PENDING", result.Error.Code);
     }
+
+    [Fact]
+    public void Cancel_releases_tickets_and_stamps_the_time_for_a_pending_reservation()
+    {
+        var reservation = APendingReservation();
+
+        var result = reservation.Cancel(Now.UtcDateTime.AddDays(3), Now);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(ReservationStatus.Cancelled, reservation.Status);
+        Assert.True(reservation.ReleasedOnCancel);
+        Assert.Equal(Now.UtcDateTime, reservation.CancelledAtUtc);
+    }
+
+    [Fact]
+    public void Cancel_releases_tickets_for_a_confirmed_reservation_at_least_48h_before_the_event()
+    {
+        var reservation = APendingReservation();
+        reservation.Confirm("EV-123456", Now);
+
+        var result = reservation.Cancel(Now.UtcDateTime.AddHours(48), Now);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(ReservationStatus.Cancelled, reservation.Status);
+        Assert.True(reservation.ReleasedOnCancel);
+    }
+
+    [Fact]
+    public void Cancel_marks_a_confirmed_reservation_lost_within_48h_of_the_event()
+    {
+        var reservation = APendingReservation();
+        reservation.Confirm("EV-123456", Now);
+
+        // RN07: cancelling a confirmed reservation under 48h forfeits the tickets.
+        var result = reservation.Cancel(Now.UtcDateTime.AddHours(47), Now);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(ReservationStatus.Lost, reservation.Status);
+        Assert.False(reservation.ReleasedOnCancel);
+        Assert.Equal(Now.UtcDateTime, reservation.CancelledAtUtc);
+    }
+
+    [Fact]
+    public void Cancel_fails_when_the_reservation_is_already_cancelled()
+    {
+        var reservation = APendingReservation();
+        reservation.Cancel(Now.UtcDateTime.AddDays(3), Now);
+
+        var result = reservation.Cancel(Now.UtcDateTime.AddDays(3), Now);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("RESERVATION_NOT_CANCELLABLE", result.Error.Code);
+    }
+
+    [Fact]
+    public void Cancel_fails_when_the_reservation_is_expired()
+    {
+        var reservation = APendingReservation();
+        reservation.Expire();
+
+        var result = reservation.Cancel(Now.UtcDateTime.AddDays(3), Now);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("RESERVATION_NOT_CANCELLABLE", result.Error.Code);
+    }
 }

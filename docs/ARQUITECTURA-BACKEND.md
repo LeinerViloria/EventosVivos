@@ -166,6 +166,8 @@ disponibles = capacidad − Σ(quantity WHERE estado ∈ {pending_payment, confi
 
 El bloqueo ocurre al **crear** la reserva (desde `pending_payment`), no al confirmar; de lo contrario habría oversell durante la ventana de pago.
 
+> **Interpretación de RF-05 (contradicción del enunciado).** RF-05 indica a la vez que la cancelación lleva una reserva *confirmada* a *cancelada* y que una reserva *ya pagada/confirmada* debe rechazarse; ambas afirmaciones se contradicen, y en este sistema "pagada" equivale a "confirmada". Se adopta la lectura que mantiene el requerimiento más coherente: una reserva **confirmada sí es cancelable**, honrando la transición explícita `confirmed → cancelled` y dejando viva la regla RN07 (que precisamente describe cancelar una confirmada con menos de 48 horas). La cláusula de rechazo se interpreta como guarda contra recancelar estados **terminales** (`cancelled`, `lost`, `expired` → error `RESERVATION_NOT_CANCELLABLE`). La alternativa —permitir cancelar solo `pending_payment`— rompería la transición `confirmed → cancelled` del propio RF-05 y volvería inaplicable RN07.
+
 ### Solape de horarios por venue (RN02)
 
 La regla RN02 establece que dos eventos activos no pueden compartir el mismo venue con horarios superpuestos. Este es un problema de concurrencia distinto del overselling, pero **se resuelve con el mismo mecanismo de concurrencia optimista con `xmin`**, aplicado esta vez sobre el agregado que gobierna la agenda: el `Venue`.

@@ -29,4 +29,16 @@ describe('ReservationsStore', () => {
 
     expect(result?.confirmationCode).toBe('EV-123456');
   });
+
+  it('posts to cancel a reservation and returns the resulting status', () => {
+    let result: { status: number } | undefined;
+
+    store.cancel('r2').subscribe((value) => (result = value));
+
+    const request = controller.expectOne('/api/v1/reservations/r2/cancel');
+    expect(request.request.method).toBe('POST');
+    request.flush({ status: 3 });
+
+    expect(result?.status).toBe(3);
+  });
 });
