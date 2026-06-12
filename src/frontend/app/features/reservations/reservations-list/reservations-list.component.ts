@@ -7,7 +7,8 @@ import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { API_BASE_URL } from '@core/api-base-url';
 import { showAppError } from '@core/errors/show-app-error';
@@ -29,11 +30,12 @@ type TagSeverity = 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contr
     ButtonModule,
     TagModule,
     ToastModule,
+    ConfirmDialogModule,
     TranslocoModule,
     EnumLabelPipe,
     DatePipe,
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './reservations-list.component.html',
 })
 export class ReservationsListComponent {
@@ -41,6 +43,7 @@ export class ReservationsListComponent {
   private readonly apiBase = inject(API_BASE_URL);
   private readonly transloco = inject(TranslocoService);
   private readonly messages = inject(MessageService);
+  private readonly confirmation = inject(ConfirmationService);
 
   protected readonly ReservationStatus = ReservationStatus;
 
@@ -94,6 +97,37 @@ export class ReservationsListComponent {
           detail: this.transloco.translate('labels.reservations.confirm.success', {
             code: response.confirmationCode,
           }),
+        });
+        this.reservations.reload();
+      },
+      error: (error: AppError) => showAppError(error, this.messages, this.transloco),
+    });
+  }
+
+  protected canCancel(status: ReservationStatus): boolean {
+    return status === ReservationStatus.PendingPayment || status === ReservationStatus.Confirmed;
+  }
+
+  protected cancel(item: ReservationListItem): void {
+    this.confirmation.confirm({
+      header: this.transloco.translate('labels.reservations.cancel.button'),
+      message: this.transloco.translate('labels.reservations.cancel.confirm'),
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: this.transloco.translate('labels.reservations.cancel.accept'),
+      rejectLabel: this.transloco.translate('labels.reservations.cancel.reject'),
+      accept: () => this.doCancel(item),
+    });
+  }
+
+  private doCancel(item: ReservationListItem): void {
+    this.store.cancel(item.id).subscribe({
+      next: (response) => {
+        const lost = response.status === ReservationStatus.Lost;
+        this.messages.add({
+          severity: lost ? 'warn' : 'success',
+          detail: this.transloco.translate(
+            lost ? 'labels.reservations.cancel.lost' : 'labels.reservations.cancel.success',
+          ),
         });
         this.reservations.reload();
       },

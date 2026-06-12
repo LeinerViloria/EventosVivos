@@ -4,10 +4,11 @@ import { WritableSignal } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { providePrimeNG } from 'primeng/config';
+import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import Aura from '@primeng/themes/aura';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { of, throwError } from 'rxjs';
-import { vi } from 'vitest';
+import { vi, Mock } from 'vitest';
 
 import { ReservationsListComponent } from './reservations-list.component';
 import { ReservationsStore } from '@features/reservations/reservations-store';
@@ -24,7 +25,9 @@ interface ReservationsListApi {
   ) => void;
   onLazyLoad: (event: { first?: number; rows?: number }) => void;
   statusSeverity: (status: ReservationStatus) => string;
+  canCancel: (status: ReservationStatus) => boolean;
   confirm: (item: ReservationListItem) => void;
+  cancel: (item: ReservationListItem) => void;
 }
 
 function api(view: RenderResult<ReservationsListComponent>): ReservationsListApi {
@@ -46,6 +49,12 @@ const esCO = {
     'reservations.column.actions': 'Acciones',
     'reservations.confirm.button': 'Confirmar pago',
     'reservations.confirm.success': 'Pago confirmado.',
+    'reservations.cancel.button': 'Cancelar',
+    'reservations.cancel.confirm': '¿Seguro?',
+    'reservations.cancel.accept': 'Sí, cancelar',
+    'reservations.cancel.reject': 'No',
+    'reservations.cancel.success': 'Reserva cancelada.',
+    'reservations.cancel.lost': 'Reserva perdida.',
   },
   enums: {
     reservationStatus: {
@@ -80,6 +89,7 @@ const pageResponse = {
 
 async function setup(
   confirmPayment = vi.fn().mockReturnValue(of({ confirmationCode: 'EV-123456' })),
+  cancel = vi.fn().mockReturnValue(of({ status: ReservationStatus.Cancelled })),
 ) {
   const view = await render(ReservationsListComponent, {
     imports: [
@@ -90,14 +100,23 @@ async function setup(
       }),
     ],
     providers: [
-      { provide: ReservationsStore, useValue: { confirmPayment } },
+      { provide: ReservationsStore, useValue: { confirmPayment, cancel } },
       provideHttpClient(),
       provideHttpClientTesting(),
       providePrimeNG({ theme: { preset: Aura } }),
     ],
   });
   const controller = TestBed.inject(HttpTestingController);
-  return { view, controller, confirmPayment };
+  // Use the component's real ConfirmationService/MessageService (the dialog and toast subscribe to
+  // their observables); intercept confirm() to auto-accept and spy on add() to assert the toast.
+  const injector = view.fixture.debugElement.injector;
+  const confirmation = injector.get(ConfirmationService);
+  vi.spyOn(confirmation, 'confirm').mockImplementation((options: Confirmation) => {
+    options.accept?.();
+    return confirmation;
+  });
+  const add: Mock = vi.spyOn(injector.get(MessageService), 'add') as unknown as Mock;
+  return { view, controller, confirmPayment, cancel, add };
 }
 
 describe('ReservationsListComponent', () => {
@@ -161,6 +180,64 @@ describe('ReservationsListComponent', () => {
 
     component.onLazyLoad({ first: 0, rows: 0 });
     expect(component.pageSize()).toBe(10);
+  });
+
+  it('cancels a reservation and reports the tickets were released', async () => {
+    const cancel = vi.fn().mockReturnValue(of({ status: ReservationStatus.Cancelled }));
+    const { view, controller, add } = await setup(undefined, cancel);
+    controller.expectOne((r) => r.url.includes('/reservations')).flush(pageResponse);
+    const component = api(view);
+
+    component.cancel(pageResponse.items[0] as ReservationListItem);
+
+    expect(cancel).toHaveBeenCalledWith('r1');
+    expect(add).toHaveBeenCalledWith(
+      expect.objectContaining({ severity: 'success', detail: 'Reserva cancelada.' }),
+    );
+  });
+
+  it('warns when a cancellation within 48h is recorded as lost (RN07)', async () => {
+    const cancel = vi.fn().mockReturnValue(of({ status: ReservationStatus.Lost }));
+    const { view, controller, add } = await setup(undefined, cancel);
+    controller.expectOne((r) => r.url.includes('/reservations')).flush(pageResponse);
+    const component = api(view);
+
+    component.cancel(pageResponse.items[0] as ReservationListItem);
+
+    expect(add).toHaveBeenCalledWith(
+      expect.objectContaining({ severity: 'warn', detail: 'Reserva perdida.' }),
+    );
+  });
+
+  it('shows an error when cancelling fails', async () => {
+    const cancel = vi.fn().mockReturnValue(
+      throwError(() => ({
+        status: 409,
+        errorCode: 'RESERVATION_NOT_CANCELLABLE',
+        errorKind: 'business',
+        params: null,
+        validationErrors: null,
+      })),
+    );
+    const { view, controller } = await setup(undefined, cancel);
+    controller.expectOne((r) => r.url.includes('/reservations')).flush(pageResponse);
+    const component = api(view);
+
+    component.cancel(pageResponse.items[0] as ReservationListItem);
+
+    expect(cancel).toHaveBeenCalledWith('r1');
+  });
+
+  it('allows cancelling only pending and confirmed reservations', async () => {
+    const { view, controller } = await setup();
+    controller.expectOne((r) => r.url.includes('/reservations')).flush(pageResponse);
+    const component = api(view);
+
+    expect(component.canCancel(ReservationStatus.PendingPayment)).toBe(true);
+    expect(component.canCancel(ReservationStatus.Confirmed)).toBe(true);
+    expect(component.canCancel(ReservationStatus.Cancelled)).toBe(false);
+    expect(component.canCancel(ReservationStatus.Lost)).toBe(false);
+    expect(component.canCancel(ReservationStatus.Expired)).toBe(false);
   });
 
   it('maps each status to a tag severity', async () => {

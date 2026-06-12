@@ -73,7 +73,13 @@
     "reservations.column.created": "Creada",
     "reservations.column.actions": "Acciones",
     "reservations.confirm.button": "Confirmar pago",
-    "reservations.confirm.success": "Pago confirmado. Código: {{code}}"
+    "reservations.confirm.success": "Pago confirmado. Código: {{code}}",
+    "reservations.cancel.button": "Cancelar",
+    "reservations.cancel.confirm": "¿Seguro que deseas cancelar esta reserva? Esta acción no se puede deshacer.",
+    "reservations.cancel.accept": "Sí, cancelar",
+    "reservations.cancel.reject": "No",
+    "reservations.cancel.success": "Reserva cancelada. Las entradas vuelven a estar disponibles.",
+    "reservations.cancel.lost": "Reserva cancelada a menos de 48 h del evento: se marca como perdida y no se liberan las entradas."
   },
   "field": {
     "event.title": "Título",

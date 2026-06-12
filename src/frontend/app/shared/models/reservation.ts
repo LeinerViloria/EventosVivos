@@ -30,3 +30,8 @@ export interface ReservationListItem {
 export interface ConfirmPaymentResponse {
   confirmationCode: string;
 }
+
+/** Result of POST /api/v1/reservations/{id}/cancel: Cancelled (tickets released) or Lost (RN07). */
+export interface CancelReservationResponse {
+  status: ReservationStatus;
+}
