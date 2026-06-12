@@ -1,5 +1,6 @@
 using EventosVivos.Application.Abstractions;
 using EventosVivos.Application.Features.Events.ListEvents;
+using EventosVivos.Application.Features.Reports.OccupancyReport;
 using EventosVivos.Application.Features.Reservations.ListReservations;
 using EventosVivos.Domain.Events;
 using EventosVivos.Domain.Reservations;
@@ -8,6 +9,7 @@ using EventosVivos.Domain.Venues;
 using EventosVivos.Infrastructure.Messaging;
 using EventosVivos.Infrastructure.Persistence;
 using EventosVivos.Infrastructure.Persistence.Repositories;
+using EventosVivos.Infrastructure.Reports;
 using EventosVivos.Infrastructure.Security;
 using EventosVivos.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +34,8 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IReservationListReader, ReservationListReader>();
+        services.AddScoped<IOccupancyReportReader, OccupancyReportReader>();
+        services.AddSingleton<IOccupancyReportPdfGenerator, OccupancyReportPdfGenerator>();
         services.AddSingleton<IReservationCodeGenerator, ReservationCodeGenerator>();
         services.AddSingleton<IClock, SystemClock>();
 
@@ -54,8 +58,10 @@ public static class DependencyInjection
         services.AddSingleton<IEventBus, RabbitMqEventBus>();
         services.AddSingleton<EventStreamBroadcaster>();
         services.AddScoped<ReservationExpirationProcessor>();
+        services.AddScoped<EventCompletionProcessor>();
         services.AddScoped<OutboxProcessor>();
         services.AddHostedService<ReservationExpirationService>();
+        services.AddHostedService<EventCompletionService>();
         services.AddHostedService<OutboxPublisherService>();
         services.AddHostedService<RabbitMqEventStreamConsumer>();
 

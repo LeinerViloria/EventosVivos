@@ -30,6 +30,7 @@
     "dashlet.reservations.action": "Ver reservas",
     "dashlet.reports.title": "Reportes",
     "dashlet.reports.desc": "Reportes de ocupación",
+    "dashlet.reports.action": "Ver reportes",
     "badge.comingSoon": "Próximamente",
     "event.subtitle": "Completa los datos del nuevo evento. Los campos marcados con * son obligatorios.",
     "event.submit": "Crear evento",
@@ -79,7 +80,18 @@
     "reservations.cancel.accept": "Sí, cancelar",
     "reservations.cancel.reject": "No",
     "reservations.cancel.success": "Reserva cancelada. Las entradas vuelven a estar disponibles.",
-    "reservations.cancel.lost": "Reserva cancelada a menos de 48 h del evento: se marca como perdida y no se liberan las entradas."
+    "reservations.cancel.lost": "Reserva cancelada a menos de 48 h del evento: se marca como perdida y no se liberan las entradas.",
+    "reports.title": "Reporte de ocupación",
+    "reports.subtitle": "Ocupación e ingresos por evento.",
+    "reports.download": "Descargar PDF",
+    "reports.empty": "No hay eventos para reportar.",
+    "reports.column.event": "Evento",
+    "reports.column.capacity": "Capacidad",
+    "reports.column.sold": "Vendidas",
+    "reports.column.available": "Disponibles",
+    "reports.column.occupancy": "Ocupación",
+    "reports.column.revenue": "Ingresos",
+    "reports.column.status": "Estado"
   },
   "field": {
     "event.title": "Título",

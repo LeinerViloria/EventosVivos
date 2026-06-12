@@ -59,4 +59,43 @@ public class EventTests
         Assert.True(result.IsFailure);
         Assert.Equal("EVENT_WEEKEND_NIGHT_START", result.Error.Code);
     }
+
+    private static Event AnActiveEvent() =>
+        Event.Create(
+            "Tech Talk", "A talk about technology and more.", AVenue(),
+            150, Start, End, 50m, EventType.Conference).Value;
+
+    [Fact]
+    public void Complete_marks_an_active_event_completed_once_its_end_has_passed()
+    {
+        var @event = AnActiveEvent();
+
+        var changed = @event.Complete(End.AddSeconds(1));
+
+        Assert.True(changed);
+        Assert.Equal(EventStatus.Completed, @event.Status);
+    }
+
+    [Fact]
+    public void Complete_is_a_no_op_while_the_event_has_not_ended()
+    {
+        var @event = AnActiveEvent();
+
+        var changed = @event.Complete(End.AddMinutes(-1));
+
+        Assert.False(changed);
+        Assert.Equal(EventStatus.Active, @event.Status);
+    }
+
+    [Fact]
+    public void Complete_does_not_change_a_non_active_event()
+    {
+        var @event = AnActiveEvent();
+        @event.Complete(End.AddSeconds(1)); // now Completed
+
+        var changed = @event.Complete(End.AddDays(1));
+
+        Assert.False(changed);
+        Assert.Equal(EventStatus.Completed, @event.Status);
+    }
 }

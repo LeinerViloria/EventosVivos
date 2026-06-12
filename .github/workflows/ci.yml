@@ -42,6 +42,9 @@ jobs:
       - name: Install SonarScanner for .NET
         run: dotnet tool install --global dotnet-sonarscanner
 
+      - name: Install QuestPDF native dependencies (SkiaSharp)
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1
+
       - name: Build, test and analyze
         working-directory: src/backend
         env:
@@ -54,7 +57,7 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
-            /d:sonar.coverage.exclusions="**/RabbitMqEventBus.cs,**/RabbitMqEventStreamConsumer.cs,**/OutboxPublisherService.cs,**/ReservationExpirationService.cs"
+            /d:sonar.coverage.exclusions="**/RabbitMqEventBus.cs,**/RabbitMqEventStreamConsumer.cs,**/OutboxPublisherService.cs,**/ReservationExpirationService.cs,**/EventCompletionService.cs"
           dotnet build EventosVivos.sln -c Release
           dotnet test EventosVivos.sln -c Release --no-build \
             --settings coverlet.runsettings \

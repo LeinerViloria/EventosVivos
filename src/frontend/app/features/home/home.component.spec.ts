@@ -16,7 +16,7 @@ const esCO = {
     'dashlet.events.desc': 'Consulta y administra los eventos',
     'dashlet.reports.title': 'Reportes',
     'dashlet.reports.desc': 'Reportes de ocupación',
-    'badge.comingSoon': 'Próximamente',
+    'dashlet.reports.action': 'Ver reportes',
   },
 };
 
@@ -45,8 +45,6 @@ describe('HomeComponent', () => {
     expect(screen.getByText('Crear evento')).toBeTruthy();
     expect(screen.getByText('Eventos')).toBeTruthy();
     expect(screen.getByText('Reportes')).toBeTruthy();
-    // Only the upcoming report section is flagged as coming soon.
-    expect(screen.getAllByText('Próximamente')).toHaveLength(1);
   });
 
   it('links the active dashlets to their routes', async () => {
@@ -56,5 +54,6 @@ describe('HomeComponent', () => {
       '/events/create',
     );
     expect(screen.getByText('Eventos').closest('a')?.getAttribute('href')).toBe('/events');
+    expect(screen.getByText('Reportes').closest('a')?.getAttribute('href')).toBe('/reports');
   });
 });
