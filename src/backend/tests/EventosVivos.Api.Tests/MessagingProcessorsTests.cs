@@ -41,6 +41,29 @@ public sealed class MessagingProcessorsTests(EventsApiFactory factory) : IClassF
     }
 
     [Fact]
+    public async Task Completion_processor_marks_overdue_active_events_completed()
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<EventosVivosDbContext>();
+
+        var venue = await db.Venues.FirstAsync();
+        // A weekday event that already ended (RN03 does not apply; Create allows past dates).
+        var start = new DateTimeOffset(2026, 1, 7, 18, 0, 0, TimeSpan.Zero);
+        var @event = Event.Create(
+            "Past Event", "An event that has already finished.", venue, 50,
+            start, start.AddHours(2), 40m, EventType.Conference).Value;
+        db.Events.Add(@event);
+        await db.SaveChangesAsync();
+
+        await scope.ServiceProvider
+            .GetRequiredService<EventCompletionProcessor>()
+            .ProcessAsync(CancellationToken.None);
+
+        await db.Entry(@event).ReloadAsync();
+        Assert.Equal(EventStatus.Completed, @event.Status);
+    }
+
+    [Fact]
     public async Task Outbox_processor_publishes_pending_messages_and_marks_them_processed()
     {
         using var scope = factory.Services.CreateScope();

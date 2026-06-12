@@ -56,8 +56,10 @@ public static class DependencyInjection
         services.AddSingleton<IEventBus, RabbitMqEventBus>();
         services.AddSingleton<EventStreamBroadcaster>();
         services.AddScoped<ReservationExpirationProcessor>();
+        services.AddScoped<EventCompletionProcessor>();
         services.AddScoped<OutboxProcessor>();
         services.AddHostedService<ReservationExpirationService>();
+        services.AddHostedService<EventCompletionService>();
         services.AddHostedService<OutboxPublisherService>();
         services.AddHostedService<RabbitMqEventStreamConsumer>();
 

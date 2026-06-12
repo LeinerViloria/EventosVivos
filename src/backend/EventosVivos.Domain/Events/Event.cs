@@ -113,6 +113,21 @@ public sealed class Event
     /// <summary>Releases held tickets back to availability (e.g. when a reservation expires).</summary>
     public void ReleaseTickets(int quantity) => ReservedTickets = Math.Max(0, ReservedTickets - quantity);
 
+    /// <summary>
+    /// RN06: marks an active event as completed once its end time has passed. No-op for events that
+    /// are not active or whose end time is still in the future.
+    /// </summary>
+    public bool Complete(DateTimeOffset now)
+    {
+        if (Status != EventStatus.Active || EndUtc > now.UtcDateTime)
+        {
+            return false;
+        }
+
+        Status = EventStatus.Completed;
+        return true;
+    }
+
     public static Result<Event> Create(
         string title,
         string description,
