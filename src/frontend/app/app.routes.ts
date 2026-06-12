@@ -42,5 +42,13 @@ export const routes: Routes = [
         (m) => m.ReservationsListComponent,
       ),
   },
+  {
+    path: 'reports',
+    canActivate: [authGuard, permissionGuard('reports.read')],
+    loadComponent: () =>
+      import('@features/reports/occupancy-report/occupancy-report.component').then(
+        (m) => m.OccupancyReportComponent,
+      ),
+  },
   { path: '**', redirectTo: '' },
 ];
