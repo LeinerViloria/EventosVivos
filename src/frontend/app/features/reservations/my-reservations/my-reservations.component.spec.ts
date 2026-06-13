@@ -19,7 +19,10 @@ interface MyReservationsApi {
   status: WritableSignal<ReservationStatus | null>;
   page: WritableSignal<number>;
   pageSize: WritableSignal<number>;
-  onFilter: (target: WritableSignal<ReservationStatus | null>, value: ReservationStatus | null) => void;
+  onFilter: (
+    target: WritableSignal<ReservationStatus | null>,
+    value: ReservationStatus | null,
+  ) => void;
   onLazyLoad: (event: { first?: number; rows?: number }) => void;
   statusSeverity: (status: ReservationStatus) => string;
   canCancel: (status: ReservationStatus) => boolean;
@@ -80,7 +83,9 @@ const pageResponse = {
   pageSize: 10,
 };
 
-async function setup(cancel = vi.fn().mockReturnValue(of({ status: ReservationStatus.Cancelled }))) {
+async function setup(
+  cancel = vi.fn().mockReturnValue(of({ status: ReservationStatus.Cancelled })),
+) {
   const view = await render(MyReservationsComponent, {
     imports: [
       TranslocoTestingModule.forRoot({

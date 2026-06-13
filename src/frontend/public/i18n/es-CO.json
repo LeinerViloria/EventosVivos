@@ -64,7 +64,7 @@
     "reserve.buyerEmail": "Correo del comprador",
     "reserve.quantity": "Cantidad",
     "reserve.submit": "Reservar",
-    "reserve.success": "Reserva creada. Tienes unos minutos para pagar.",
+    "reserve.success": "Reserva creada. El administrador tiene {{minutes}} minutos para confirmar el pago.",
     "myReservations.title": "Mis reservas",
     "myReservations.subtitle": "Historial de reservas realizadas con tu cuenta.",
     "myReservations.filter.status": "Estado",

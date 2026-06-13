@@ -19,7 +19,8 @@ const esCO = {
     'reserve.buyerEmail': 'Correo del comprador',
     'reserve.quantity': 'Cantidad',
     'reserve.submit': 'Reservar',
-    'reserve.success': 'Reserva creada.',
+    'reserve.success':
+      'Reserva creada. El administrador tiene {{minutes}} minutos para confirmar el pago.',
   },
   errors: {
     RESERVATION_BUYER_NAME_REQUIRED: 'El nombre es obligatorio.',
@@ -50,8 +51,10 @@ interface ReserveDialogApi {
   onHide: () => void;
 }
 
+const futureExpiry = new Date(Date.now() + 15 * 60_000).toISOString();
+
 async function setup(
-  createReservation = vi.fn().mockReturnValue(of({ id: 'r1', expiresAtUtc: 'x' })),
+  createReservation = vi.fn().mockReturnValue(of({ id: 'r1', expiresAtUtc: futureExpiry })),
   user: AuthUser | null = null,
 ) {
   const view: RenderResult<ReserveDialogComponent> = await render(ReserveDialogComponent, {

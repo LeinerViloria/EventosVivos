@@ -98,11 +98,14 @@ export class ReserveDialogComponent {
     const { buyerName, buyerEmail, quantity } = this.form.getRawValue();
     this.submitting.set(true);
     this.store.createReservation({ eventId: event.id, buyerName, buyerEmail, quantity }).subscribe({
-      next: () => {
+      next: (response) => {
         this.submitting.set(false);
+        const minutes = Math.round(
+          (new Date(response.expiresAtUtc).getTime() - Date.now()) / 60_000,
+        );
         this.messages.add({
           severity: 'success',
-          detail: this.transloco.translate('labels.reserve.success'),
+          detail: this.transloco.translate('labels.reserve.success', { minutes }),
         });
         this.reserved.emit();
         this.resetForm();
