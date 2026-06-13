@@ -97,18 +97,53 @@ El backend crea automáticamente dos usuarios al arrancar por primera vez:
 
 ---
 
-## Integración continua
+## Pruebas automatizadas
 
-En cada pull request hacia `main`, GitHub Actions ejecuta **en paralelo** dos flujos independientes, uno para el backend y otro para el frontend. Cada uno comprueba el formato, compila, ejecuta las pruebas con cobertura y envía el análisis a SonarQube Cloud (SonarCloud), cada uno a su propio proyecto. El pull request queda en verde, con todas las verificaciones aprobadas, únicamente cuando ambos flujos terminan correctamente.
+El proyecto sigue **desarrollo guiado por pruebas (TDD)**: ningún flujo de negocio se da por terminado sin sus pruebas, y el pipeline de CI las ejecuta con cobertura en cada pull request antes de permitir la integración.
 
-Para que el análisis de SonarCloud funcione, el repositorio debe tener configurados los siguientes **secretos** en GitHub (Settings → Secrets and variables → Actions):
+### Backend
 
-- `SONAR_TOKEN`: token de SonarCloud.
-- `SONAR_ORGANIZATION`: organización en SonarCloud.
-- `SONAR_PROJECT_KEY_BACKEND`: project key del proyecto backend.
-- `SONAR_PROJECT_KEY_FRONTEND`: project key del proyecto frontend.
+Tres proyectos de prueba con **xUnit**:
 
-Además, en SonarCloud se deben crear la organización y dos proyectos, uno para el backend y otro para el frontend, vinculados a este repositorio.
+| Proyecto | Qué prueba |
+|----------|------------|
+| `EventosVivos.Domain.Tests` | Reglas de negocio, invariantes del dominio y máquinas de estado (entidades puras, sin infraestructura) |
+| `EventosVivos.Application.Tests` | Casos de uso (handlers de Mediator), validaciones de FluentValidation y comportamiento de los pipeline behaviors |
+| `EventosVivos.Api.Tests` | Endpoints de Minimal APIs de extremo a extremo, con base de datos real en contenedor (Testcontainers) |
+
+### Frontend
+
+Pruebas con **Vitest** y **Angular Testing Library**, organizadas junto a cada feature:
+
+- Componentes: login, registro, listado de eventos, creación de eventos, listado de reservas, mis reservas, diálogo de reserva, home, reporte de ocupación.
+- Stores de signals: autenticación, reservas, reportes.
+- Interceptores: normalización de errores, envío de zona horaria.
+
+---
+
+## Integración y despliegue continuos
+
+El pipeline de GitHub Actions tiene cuatro fases que se ejecutan en orden:
+
+1. **CI — Backend y Frontend (en paralelo):** en cada pull request hacia `main` se comprueban el formato, se compila, se ejecutan las pruebas con cobertura y se envía el análisis a SonarCloud, cada proyecto a su propio espacio. El pull request queda en verde únicamente cuando ambos jobs terminan correctamente.
+
+2. **Publicación de imágenes (CD):** al hacer push a `main`, si los dos jobs de CI pasan, se construyen y publican las imágenes Docker de backend y frontend en GitHub Container Registry (`ghcr.io`). Cada publicación calcula automáticamente la siguiente versión semántica (minor autoincremental), crea el tag en git (`vX.Y.Z`) y etiqueta las imágenes con ese tag y con `latest`.
+
+3. **Despliegue al VPS (CD):** una vez publicadas las imágenes, el pipeline copia los archivos de despliegue al servidor vía SCP y reinicia la pila con `docker compose`, descargando las nuevas imágenes desde GHCR. El `.env` de producción ya vive en el servidor y no se sube en ningún momento.
+
+### Secretos requeridos en GitHub
+
+| Secreto | Descripción |
+|---------|-------------|
+| `SONAR_TOKEN` | Token de SonarCloud |
+| `SONAR_ORGANIZATION` | Organización en SonarCloud |
+| `SONAR_PROJECT_KEY_BACKEND` | Project key del proyecto backend |
+| `SONAR_PROJECT_KEY_FRONTEND` | Project key del proyecto frontend |
+| `SSH_HOST` | IP o dominio del VPS |
+| `SSH_USER` | Usuario SSH del VPS |
+| `SSH_KEY` | Clave privada SSH para autenticarse en el VPS |
+
+Además, en SonarCloud se deben crear la organización y dos proyectos (uno por cada proyecto), vinculados a este repositorio. En GitHub, Settings → Actions → General → Workflow permissions debe tener habilitado "Read and write permissions" para que el pipeline pueda crear los tags de versión y publicar en GHCR.
 
 ## Documentación
 
