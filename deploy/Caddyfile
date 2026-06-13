@@ -1,0 +1,18 @@
+# Reverse proxy de producción. El dominio y el email de ACME se leen de variables de entorno
+# (DOMAIN, ACME_EMAIL), inyectadas al contenedor de Caddy desde el .env del servidor.
+# Caddy emite y renueva el certificado TLS (Let's Encrypt) automáticamente.
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# API y SSE → backend. No se reescribe el prefijo: el backend sirve rutas /api/v1/*.
+	@api path /api/*
+	reverse_proxy @api eventosvivos-api:8080
+
+	# El resto → la SPA servida por Nginx.
+	reverse_proxy eventosvivos-web:80
+}

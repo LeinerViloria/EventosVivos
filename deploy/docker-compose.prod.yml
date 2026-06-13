@@ -1,0 +1,105 @@
+# Despliegue de producción (Bare: VPS + docker compose + Caddy).
+# Usa las imágenes publicadas en GHCR (no construye). Solo Caddy se expone al exterior (80/443);
+# el resto de servicios vive en la red interna. Las variables vienen del archivo .env del servidor
+# (no versionado); copia deploy/.env.example como .env y complétalo.
+#
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+
+services:
+  postgres:
+    image: postgres:18.4-bookworm
+    container_name: eventosvivos-postgres
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks: [eventosvivos]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: eventosvivos-redis
+    env_file: .env
+    restart: unless-stopped
+    command: ["sh", "-c", "redis-server --requirepass \"$$REDIS_PASSWORD\""]
+    networks: [eventosvivos]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: eventosvivos-rabbitmq
+    env_file: .env
+    restart: unless-stopped
+    networks: [eventosvivos]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  api:
+    image: ghcr.io/${GHCR_OWNER}/eventosvivos-backend:${IMAGE_TAG:-latest}
+    container_name: eventosvivos-api
+    env_file: .env
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Dentro de la red de Docker los hosts son los nombres de servicio.
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      RABBITMQ_HOST: rabbitmq
+    networks: [eventosvivos]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  web:
+    image: ghcr.io/${GHCR_OWNER}/eventosvivos-frontend:${IMAGE_TAG:-latest}
+    container_name: eventosvivos-web
+    restart: unless-stopped
+    networks: [eventosvivos]
+    depends_on:
+      - api
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: eventosvivos-caddy
+    restart: unless-stopped
+    # DOMAIN y ACME_EMAIL se leen del .env y los consume el Caddyfile vía {$DOMAIN} / {$ACME_EMAIL}.
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks: [eventosvivos]
+    depends_on:
+      - web
+      - api
+
+networks:
+  eventosvivos:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  caddy-data:
+  caddy-config:

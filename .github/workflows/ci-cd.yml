@@ -186,3 +186,38 @@ jobs:
           tags: |
             ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-frontend:latest
             ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-frontend:${{ steps.ver.outputs.version }}
+
+  # CD (deploy): solo tras publicar las imágenes (needs), y solo en push a main. Copia los archivos
+  # de despliegue al VPS y reinicia la pila. El .env de producción ya vive en el servidor (no se sube).
+  deploy:
+    name: Deploy to VPS
+    needs: [publish-images]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy deploy files to the VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: deploy/docker-compose.prod.yml,deploy/Caddyfile
+          target: /opt/eventosvivos
+          strip_components: 1
+
+      - name: Pull images and restart the stack
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /opt/eventosvivos
+            docker compose -f docker-compose.prod.yml pull
+            # down (sin -v) detiene lo que esté arriba sin borrar los volúmenes de datos.
+            docker compose -f docker-compose.prod.yml down
+            docker compose -f docker-compose.prod.yml up -d
+            docker image prune -f
