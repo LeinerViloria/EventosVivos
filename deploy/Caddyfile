@@ -4,6 +4,10 @@
 
 {
 	email {$ACME_EMAIL}
+	# En este host el 80 y el 443 los ocupa el Traefik de producción. El certificado se emite por
+	# DNS-01 contra la API de DuckDNS (no usa puertos), y no abrimos el listener HTTP :80.
+	auto_https disable_redirects
+	acme_dns duckdns {$DUCKDNS_TOKEN}
 }
 
 {$DOMAIN} {

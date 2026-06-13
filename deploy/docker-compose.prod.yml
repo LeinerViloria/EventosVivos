@@ -76,16 +76,21 @@ services:
       - api
 
   caddy:
-    image: caddy:2-alpine
+    # Imagen propia con el plugin DNS de DuckDNS (DNS-01), construida en el host.
+    build:
+      context: .
+      dockerfile: caddy.Dockerfile
     container_name: eventosvivos-caddy
     restart: unless-stopped
-    # DOMAIN y ACME_EMAIL se leen del .env y los consume el Caddyfile vía {$DOMAIN} / {$ACME_EMAIL}.
+    # DOMAIN/ACME_EMAIL/DUCKDNS_TOKEN se leen del .env y los consume el Caddyfile.
     environment:
       DOMAIN: ${DOMAIN}
       ACME_EMAIL: ${ACME_EMAIL}
+      DUCKDNS_TOKEN: ${DUCKDNS_TOKEN}
+    # El 80 y el 443 los tiene el Traefik de producción (intocable). Servimos HTTPS en un puerto no
+    # estándar; el certificado se obtiene por DNS-01, sin necesitar 80/443.
     ports:
-      - "80:80"
-      - "443:443"
+      - "8443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data

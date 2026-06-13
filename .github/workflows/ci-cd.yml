@@ -204,7 +204,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: deploy/docker-compose.prod.yml,deploy/Caddyfile
+          source: deploy/docker-compose.prod.yml,deploy/Caddyfile,deploy/caddy.Dockerfile
           target: /opt/eventosvivos
           strip_components: 1
 
@@ -216,8 +216,9 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /opt/eventosvivos
-            docker compose -f docker-compose.prod.yml pull
+            # pull de las imágenes de GHCR (api/web/infra); Caddy se construye localmente (--build).
+            docker compose -f docker-compose.prod.yml pull --ignore-buildable
             # down (sin -v) detiene lo que esté arriba sin borrar los volúmenes de datos.
             docker compose -f docker-compose.prod.yml down
-            docker compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml up -d --build
             docker image prune -f
