@@ -1,0 +1,223 @@
+# Integración y despliegue continuos.
+#
+# CI: backend y frontend se analizan en paralelo (jobs independientes). En un pull request solo
+# corren estos dos jobs; los pasos de publicación se omiten.
+#
+# CD: al hacer push a main, si AMBOS jobs de CI terminan correctamente, se construyen y publican las
+# imágenes Docker de backend y frontend en GitHub Packages (ghcr.io). El job de publicación declara
+# `needs: [backend, frontend]`, así que si cualquiera de los dos falla, la publicación se omite y el
+# despliegue no continúa.
+#
+# Configuración requerida en el repositorio (Settings → Secrets and variables → Actions → Secrets):
+#     SONAR_TOKEN                 Token de SonarCloud (SonarQube Cloud).
+#     SONAR_ORGANIZATION          Organización en SonarCloud.
+#     SONAR_PROJECT_KEY_BACKEND   Project key del proyecto backend en SonarCloud.
+#     SONAR_PROJECT_KEY_FRONTEND  Project key del proyecto frontend en SonarCloud.
+# La publicación usa el GITHUB_TOKEN integrado (no requiere secreto adicional). Verifica que en
+# Settings → Actions → General → Workflow permissions esté habilitado "Read and write permissions".
+name: CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify formatting
+        working-directory: src/backend
+        run: dotnet format EventosVivos.sln --verify-no-changes
+
+      - name: Setup Java (requerido por SonarScanner)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install SonarScanner for .NET
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Install QuestPDF native dependencies (SkiaSharp)
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1
+
+      - name: Build, test and analyze
+        working-directory: src/backend
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          dotnet sonarscanner begin \
+            /k:"${{ secrets.SONAR_PROJECT_KEY_BACKEND }}" \
+            /o:"${{ secrets.SONAR_ORGANIZATION }}" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+            /d:sonar.coverage.exclusions="**/RabbitMqEventBus.cs,**/RabbitMqEventStreamConsumer.cs,**/OutboxPublisherService.cs,**/ReservationExpirationService.cs,**/EventCompletionService.cs"
+          dotnet build EventosVivos.sln -c Release
+          dotnet test EventosVivos.sln -c Release --no-build \
+            --settings coverlet.runsettings \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./TestResults
+          dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
+
+  frontend:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Install dependencies
+        working-directory: src/frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify formatting
+        working-directory: src/frontend
+        run: pnpm exec prettier --check .
+
+      - name: Test with coverage
+        working-directory: src/frontend
+        run: pnpm exec ng test --watch=false --coverage --coverage-reporters=lcovonly
+
+      - name: SonarCloud scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        with:
+          projectBaseDir: src/frontend
+          args: >
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_FRONTEND }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+
+  # CD: solo en push a main y solo si backend Y frontend pasaron (needs). En PR este job no corre.
+  publish-images:
+    name: Publish images (GHCR)
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write # crear y empujar el tag de versión (vX.Y.Z)
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # necesario para leer los tags de versión existentes
+
+      - name: Compute version (semver, minor autoincrementable)
+        id: ver
+        run: |
+          git fetch --tags --force --quiet
+          latest=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
+          if [ -z "$latest" ]; then
+            # Primera publicación: arranca en 1.0.0.
+            version="1.0.0"
+          else
+            base=${latest#v}
+            major=${base%%.*}
+            rest=${base#*.}
+            minor=${rest%%.*}
+            # Autoincrementa el minor y resetea el patch; para subir MAJOR crea un tag manual (p. ej. v2.0.0).
+            version="${major}.$((minor + 1)).0"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Próxima versión: $version"
+
+      - name: Tag the release in git
+        run: |
+          git tag "v${{ steps.ver.outputs.version }}"
+          git push origin "v${{ steps.ver.outputs.version }}"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Namespace en minúscula (requisito de GHCR)
+        id: ns
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Build & push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: src/backend
+          file: src/backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-backend:latest
+            ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-backend:${{ steps.ver.outputs.version }}
+
+      - name: Build & push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: src/frontend
+          file: src/frontend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-frontend:latest
+            ghcr.io/${{ steps.ns.outputs.owner }}/eventosvivos-frontend:${{ steps.ver.outputs.version }}
+
+  # CD (deploy): solo tras publicar las imágenes (needs), y solo en push a main. Copia los archivos
+  # de despliegue al VPS y reinicia la pila. El .env de producción ya vive en el servidor (no se sube).
+  deploy:
+    name: Deploy to VPS
+    needs: [publish-images]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy deploy files to the VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: deploy/docker-compose.prod.yml,deploy/Caddyfile
+          target: /opt/eventosvivos
+          strip_components: 1
+
+      - name: Pull images and restart the stack
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /opt/eventosvivos
+            docker compose -f docker-compose.prod.yml pull
+            # down (sin -v) detiene lo que esté arriba sin borrar los volúmenes de datos.
+            docker compose -f docker-compose.prod.yml down
+            docker compose -f docker-compose.prod.yml up -d
+            docker image prune -f

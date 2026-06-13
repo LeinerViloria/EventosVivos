@@ -17,6 +17,10 @@ RUN dotnet publish EventosVivos.Api/EventosVivos.Api.csproj -c Release -o /app/p
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
+# QuestPDF (SkiaSharp) requiere libfontconfig1 en tiempo de ejecución para generar el PDF (RF-06).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libfontconfig1 \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app/publish .
 EXPOSE 8080
 # Ejecutar como usuario no root (definido por la imagen de .NET) por seguridad.
