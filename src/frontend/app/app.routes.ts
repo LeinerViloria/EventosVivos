@@ -43,6 +43,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'my-reservations',
+    canActivate: [authGuard, permissionGuard('reservations.read.own')],
+    loadComponent: () =>
+      import('@features/reservations/my-reservations/my-reservations.component').then(
+        (m) => m.MyReservationsComponent,
+      ),
+  },
+  {
     path: 'reports',
     canActivate: [authGuard, permissionGuard('reports.read')],
     loadComponent: () =>

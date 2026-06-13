@@ -10,6 +10,14 @@ function makeToken(claims: Record<string, unknown>): string {
   return `header.${btoa(JSON.stringify(claims))}.signature`;
 }
 
+/** Builds a JWT-shaped token with a UTF-8 encoded payload (handles accents, ñ, etc.). */
+function makeUtf8Token(claims: Record<string, unknown>): string {
+  const json = JSON.stringify(claims);
+  const bytes = new TextEncoder().encode(json);
+  const binary = Array.from(bytes, (b) => String.fromCharCode(b)).join('');
+  return `header.${btoa(binary)}.signature`;
+}
+
 describe('AuthStore', () => {
   let store: AuthStore;
   let controller: HttpTestingController;
@@ -67,6 +75,22 @@ describe('AuthStore', () => {
 
     expect(store.hasPermission('events.read')).toBe(true);
     expect(store.hasPermission('events.create')).toBe(false);
+  });
+
+  it('decodes names with accented characters correctly', () => {
+    const permissionsToken = makeUtf8Token({
+      role: 'User',
+      name: 'María José Ñoño',
+      email: 'maria@example.com',
+      perm: 'reservations.read.own',
+    });
+
+    store.login('maria@example.com', 'Password1*').subscribe();
+    controller
+      .expectOne((request) => request.url.includes('/auth/login'))
+      .flush({ identityToken: 'identity-token', permissionsToken });
+
+    expect(store.user()?.name).toBe('María José Ñoño');
   });
 
   it('clears the session on logout', () => {

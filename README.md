@@ -2,9 +2,6 @@
 
 Núcleo del sistema de reservas de **EventosVivos**, una startup que organiza eventos culturales, conferencias y talleres. El sistema resuelve el control de capacidad en tiempo real, la gestión de conflictos de horario en los lugares y el ciclo de vida de las reservas y sus pagos. El enunciado completo del problema está en [`docs/ENUNCIADO.md`](./docs/ENUNCIADO.md).
 
-> Este README se actualiza de forma incremental a medida que avanza el desarrollo. Las
-> instrucciones de ejecución reflejan el montaje previsto con Docker Compose.
-
 ---
 
 ## Tecnologías utilizadas
@@ -81,12 +78,22 @@ Una vez iniciados los contenedores, los servicios quedan disponibles en las sigu
 |----------|-----------|-------|
 | Aplicación web | http://localhost:4200 | Frontend Angular servido por Nginx |
 | API | http://localhost:8080 | Endpoint de salud: `/health` |
+| Documentación API (Scalar) | http://localhost:8080/scalar/v1 | Explorador interactivo de endpoints |
 | PostgreSQL | localhost:5432 | Credenciales en `src/backend/.env` |
-| Redis | localhost:6380 | Puerto de host 6380 → 6379 del contenedor |
+| Redis | localhost:6380 | Puerto de host 6380 para no colisionar con Redis local |
 | RabbitMQ | localhost:5672 | Protocolo AMQP |
 | RabbitMQ (panel) | http://localhost:15672 | Interfaz de administración |
 
 Las credenciales de PostgreSQL, Redis y RabbitMQ se toman de `src/backend/.env` (los valores de ejemplo están en `src/backend/.env.example`).
+
+### Usuarios semilla
+
+El backend crea automáticamente dos usuarios al arrancar por primera vez:
+
+| Rol | Correo | Contraseña |
+|-----|--------|------------|
+| Administrador | admin@eventosvivos.dev | `Admin123*` |
+| Usuario | usuario@eventosvivos.dev | `Usuario123*` |
 
 ---
 

@@ -10,15 +10,13 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { TranslocoModule } from '@jsverse/transloco';
-import { showAppError } from '@core/errors/show-app-error';
 import { ReservationListBase } from '@features/reservations/reservation-list-base';
 import { EnumLabelPipe } from '@shared/pipes/enum-label.pipe';
-import { ReservationListItem } from '@shared/models/reservation';
 import { PagedResult } from '@shared/models/paged-result';
-import { AppError } from '@shared/models/app-error';
+import { ReservationListItem } from '@shared/models/reservation';
 
 @Component({
-  selector: 'app-reservations-list',
+  selector: 'app-my-reservations',
   imports: [
     FormsModule,
     TableModule,
@@ -32,9 +30,9 @@ import { AppError } from '@shared/models/app-error';
     DatePipe,
   ],
   providers: [MessageService, ConfirmationService],
-  templateUrl: './reservations-list.component.html',
+  templateUrl: './my-reservations.component.html',
 })
-export class ReservationsListComponent extends ReservationListBase {
+export class MyReservationsComponent extends ReservationListBase {
   protected readonly reservations = httpResource<PagedResult<ReservationListItem>>(
     () => {
       const params = new URLSearchParams();
@@ -43,23 +41,8 @@ export class ReservationsListComponent extends ReservationListBase {
       }
       params.set('page', String(this.page()));
       params.set('pageSize', String(this.pageSize()));
-      return `${this.apiBase}/reservations?${params.toString()}`;
+      return `${this.apiBase}/reservations/mine?${params.toString()}`;
     },
     { defaultValue: { items: [], total: 0, page: 1, pageSize: 10 } },
   );
-
-  protected confirm(item: ReservationListItem): void {
-    this.store.confirmPayment(item.id).subscribe({
-      next: (response) => {
-        this.messages.add({
-          severity: 'success',
-          detail: this.transloco.translate('labels.reservations.confirm.success', {
-            code: response.confirmationCode,
-          }),
-        });
-        this.reservations.reload();
-      },
-      error: (error: AppError) => showAppError(error, this.messages, this.transloco),
-    });
-  }
 }
