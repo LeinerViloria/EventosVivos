@@ -79,10 +79,9 @@ export class AuthStore {
 function decodeUser(token: string): AuthUser | null {
   try {
     const payload = token.split('.')[1];
-    const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as Record<
-      string,
-      unknown
-    >;
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const claims = JSON.parse(new TextDecoder().decode(bytes)) as Record<string, unknown>;
     const perm = claims['perm'];
     const permissions = Array.isArray(perm) ? (perm as string[]) : perm ? [perm as string] : [];
 

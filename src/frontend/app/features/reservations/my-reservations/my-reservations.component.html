@@ -1,0 +1,80 @@
+<p-toast />
+<p-confirmdialog />
+
+<section class="mx-auto max-w-5xl">
+  <header class="mb-6 flex flex-col gap-1">
+    <h1 class="text-3xl font-bold">{{ 'labels.myReservations.title' | transloco }}</h1>
+    <p class="text-surface-400">{{ 'labels.myReservations.subtitle' | transloco }}</p>
+  </header>
+
+  <div class="mb-4 max-w-xs">
+    <p-select
+      styleClass="w-full"
+      [options]="statusOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="status()"
+      (ngModelChange)="onFilter(status, $event)"
+      [showClear]="true"
+      [placeholder]="'labels.myReservations.filter.status' | transloco"
+      [ariaLabel]="'labels.myReservations.filter.status' | transloco"
+    />
+  </div>
+
+  <p-table
+    [value]="reservations.value().items"
+    [lazy]="true"
+    (onLazyLoad)="onLazyLoad($event)"
+    [paginator]="true"
+    [rows]="pageSize()"
+    [first]="first()"
+    [totalRecords]="reservations.value().total"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [loading]="reservations.isLoading()"
+    dataKey="id"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th scope="col">{{ 'labels.myReservations.column.event' | transloco }}</th>
+        <th scope="col">{{ 'labels.myReservations.column.quantity' | transloco }}</th>
+        <th scope="col">{{ 'labels.myReservations.column.status' | transloco }}</th>
+        <th scope="col">{{ 'labels.myReservations.column.code' | transloco }}</th>
+        <th scope="col">{{ 'labels.myReservations.column.created' | transloco }}</th>
+        <th scope="col">{{ 'labels.myReservations.column.actions' | transloco }}</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td>{{ item.eventTitle }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>
+          <p-tag
+            [value]="item.status | enumLabel: 'reservationStatus'"
+            [severity]="statusSeverity(item.status)"
+          />
+        </td>
+        <td>{{ item.confirmationCode ?? '—' }}</td>
+        <td>{{ item.createdAtUtc | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td>
+          @if (canCancel(item.status)) {
+            <p-button
+              [label]="'labels.reservations.cancel.button' | transloco"
+              icon="pi pi-times"
+              size="small"
+              severity="danger"
+              [outlined]="true"
+              (onClick)="cancel(item)"
+            />
+          }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="p-6 text-center text-surface-400">
+          {{ 'labels.myReservations.empty' | transloco }}
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>

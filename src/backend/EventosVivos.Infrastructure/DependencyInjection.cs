@@ -1,6 +1,7 @@
 using EventosVivos.Application.Abstractions;
 using EventosVivos.Application.Features.Events.ListEvents;
 using EventosVivos.Application.Features.Reports.OccupancyReport;
+using EventosVivos.Application.Features.Reservations.ListMyReservations;
 using EventosVivos.Application.Features.Reservations.ListReservations;
 using EventosVivos.Domain.Events;
 using EventosVivos.Domain.Reservations;
@@ -34,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IReservationListReader, ReservationListReader>();
+        services.AddScoped<IMyReservationListReader, MyReservationListReader>();
         services.AddScoped<IOccupancyReportReader, OccupancyReportReader>();
         services.AddSingleton<IOccupancyReportPdfGenerator, OccupancyReportPdfGenerator>();
         services.AddSingleton<IReservationCodeGenerator, ReservationCodeGenerator>();
